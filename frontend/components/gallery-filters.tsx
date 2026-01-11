@@ -2,14 +2,11 @@
 
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { COURSES } from "@/lib/mock-data"
 import { Search } from "lucide-react"
 
 interface GalleryFiltersProps {
   searchQuery: string
   onSearchChange: (value: string) => void
-  courseFilter: string
-  onCourseChange: (value: string) => void
   statusFilter: string
   onStatusChange: (value: string) => void
   sortBy: string
@@ -19,8 +16,6 @@ interface GalleryFiltersProps {
 export function GalleryFilters({
   searchQuery,
   onSearchChange,
-  courseFilter,
-  onCourseChange,
   statusFilter,
   onStatusChange,
   sortBy,
@@ -40,20 +35,6 @@ export function GalleryFilters({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Select value={courseFilter} onValueChange={onCourseChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Course" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Courses</SelectItem>
-            {COURSES.map((course) => (
-              <SelectItem key={course} value={course}>
-                {course}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         <Select value={statusFilter} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[130px]">
             <SelectValue placeholder="Status" />

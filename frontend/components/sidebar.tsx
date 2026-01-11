@@ -3,12 +3,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutGrid, Upload, Trophy, Info } from "lucide-react"
+import { LayoutGrid, Upload, Info } from "lucide-react"
 
 const navItems = [
   { href: "/", label: "Gallery", icon: LayoutGrid },
   { href: "/submit", label: "Submit", icon: Upload },
-  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { href: "/about", label: "About", icon: Info },
 ]
 

@@ -3,29 +3,19 @@ FlockRL Backend API
 Python backend service for handling submission processing and Plotty integration
 """
 
-import os
-import sys
 from pathlib import Path
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-simulator_path = Path(os.getenv("SIMULATOR_PATH"))
-if str(simulator_path) not in sys.path:
-    sys.path.insert(0, str(simulator_path))
-
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import json
 from datetime import datetime
-
-# Import PlotlyRenderer from the simulator repository
 from flockrl_sim.visualization.plotly_renderer import PlotlyRenderer
 from flockrl_sim.visualization.renderer import OfflineVisualizer
+
+load_dotenv()
 
 app = FastAPI(title="FlockRL API", version="1.0.0")
 
@@ -42,7 +32,6 @@ app.add_middleware(
 # Pydantic models
 class SubmissionCreate(BaseModel):
     title: str
-    course: str
     tags: Optional[List[str]] = []
     notes: Optional[str] = None
     env_set: Optional[str] = None
@@ -71,7 +60,6 @@ async def health_check():
 async def create_submission(
     file: UploadFile = File(...),
     title: str = "",
-    course: str = "",
     tags: List[str] = [],
     notes: Optional[str] = None,
     env_set: Optional[str] = None,
@@ -124,7 +112,6 @@ async def create_submission(
         metadata = {
             "id": submission_id,
             "title": title or f"Submission {submission_id}",
-            "course": course or "Unknown",
             "tags": tags or [],
             "notes": notes,
             "env_set": env_set,
@@ -212,7 +199,6 @@ async def get_submission(submission_id: str):
             "id": metadata.get("id", submission_id),
             "title": metadata.get("title", "Untitled"),
             "createdAt": metadata.get("created_at", datetime.now().isoformat()),
-            "course": metadata.get("course", "Unknown"),
             "envSet": metadata.get("env_set"),
             "status": metadata.get("status", "READY"),
             "videoUrl": None,  # Not yet implemented
@@ -260,7 +246,6 @@ async def list_submissions():
                 "id": submission_id,
                 "title": metadata.get("title", "Untitled"),
                 "createdAt": metadata.get("created_at", ""),
-                "course": metadata.get("course", "Unknown"),
                 "status": metadata.get("status", "READY"),
                 "thumbnailUrl": "/drone-image.jpg",
                 "tags": metadata.get("tags", []),
@@ -411,6 +396,39 @@ async def get_submission_data(submission_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load data: {str(e)}")
+
+
+@app.get("/api/submissions/{submission_id}/log")
+async def get_submission_log(submission_id: str):
+    """
+    Get the log file content for a submission.
+    Returns the file content as formatted JSON text.
+    """
+    upload_dir = Path("uploads")
+    
+    # Find the file
+    json_file = upload_dir / f"{submission_id}.json"
+    log_file = upload_dir / f"{submission_id}.log"
+    
+    file_path = json_file if json_file.exists() else (log_file if log_file.exists() else None)
+    
+    if not file_path or not file_path.exists():
+        raise HTTPException(status_code=404, detail="Log file not found")
+    
+    try:
+        with open(file_path, "r") as f:
+            content = f.read()
+        
+        # Try to format as JSON if it's valid JSON
+        try:
+            data = json.loads(content)
+            formatted_content = json.dumps(data, indent=2)
+            return PlainTextResponse(formatted_content, media_type="text/plain")
+        except json.JSONDecodeError:
+            # If it's not valid JSON, return as-is
+            return PlainTextResponse(content, media_type="text/plain")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read log file: {str(e)}")
 
 
 if __name__ == "__main__":

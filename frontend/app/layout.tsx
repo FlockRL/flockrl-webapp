@@ -12,7 +12,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "FlockRL Gallery",
-  description: "Visual gallery of drone flight videos navigating obstacle courses",
+  description: "Visual gallery of drone flight videos",
   generator: "v0.app",
   icons: {
     icon: [

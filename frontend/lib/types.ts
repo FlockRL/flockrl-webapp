@@ -4,7 +4,6 @@ export interface Submission {
   id: string
   title: string
   createdAt: string
-  course: string
   envSet?: string
   status: SubmissionStatus
   videoUrl?: string
@@ -23,13 +22,4 @@ export interface Submission {
   plots?: { name: string; url: string }[]
   logFileName: string
   rendererVersion?: string
-}
-
-export interface Collection {
-  id: string
-  name: string
-  description?: string
-  coverSubmissionId?: string
-  submissionIds: string[]
-  tags?: string[]
 }

@@ -1,0 +1,13 @@
+name = "flockrl-webapp"
+compatibility_date = "2025-01-13"
+pages_build_output_dir = "dist"
+
+# Compatibility flags for Node.js runtime
+compatibility_flags = ["nodejs_compat"]
+
+# NOTE: Environment variables for Next.js (NEXT_PUBLIC_*) must be configured
+# in the Cloudflare Pages dashboard under Settings → Environment variables.
+# They are build-time variables and cannot be set here in wrangler.toml.
+#
+# Example (set in Cloudflare Pages dashboard):
+# NEXT_PUBLIC_API_URL = "https://api.flockrl.com"

@@ -11,11 +11,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { COURSES } from "@/lib/mock-data"
-import { createSubmission, APIError } from "@/lib/api"
+import { createSubmission, APIError, isBackendConfigured } from "@/lib/api"
+import { BackendNotConfiguredBanner, BackendUnavailableBanner } from "@/components/backend-status-banner"
 import { Upload } from "lucide-react"
 
 export default function SubmitPage() {
@@ -24,20 +24,22 @@ export default function SubmitPage() {
 
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
-  const [course, setCourse] = useState("")
   const [tags, setTags] = useState<string[]>([])
   const [notes, setNotes] = useState("")
   const [envSet, setEnvSet] = useState("")
   const [rendererPreset, setRendererPreset] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const [backendConfigured] = useState(isBackendConfigured())
+  const [apiError, setApiError] = useState<APIError | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!file || !title || !course) {
+    if (!file || !title) {
       toast({
         title: "Missing required fields",
-        description: "Please provide a log file, title, and course.",
+        description: "Please provide a log file and title.",
         variant: "destructive",
       })
       return
@@ -48,7 +50,6 @@ export default function SubmitPage() {
     try {
       const response = await createSubmission(file, {
         title,
-        course,
         tags: tags.length > 0 ? tags : undefined,
         notes: notes || undefined,
         env_set: envSet || undefined,
@@ -63,15 +64,21 @@ export default function SubmitPage() {
       // Navigate to submission detail with real ID from response
       router.push(`/submissions/${response.id}`)
     } catch (error) {
-      const message = error instanceof APIError 
-        ? error.detail || error.message 
-        : "Failed to upload submission. Please try again."
-      
-      toast({
-        title: "Upload failed",
-        description: message,
-        variant: "destructive",
-      })
+      if (error instanceof APIError) {
+        setApiError(error)
+        const message = error.detail || error.message
+        toast({
+          title: "Upload failed",
+          description: message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload submission. Please try again.",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -80,6 +87,10 @@ export default function SubmitPage() {
   return (
     <div className="p-4 md:p-6">
       <Breadcrumbs items={[{ label: "Submit" }]} />
+
+      {/* Show backend status banner if not configured or error */}
+      {!backendConfigured && <BackendNotConfiguredBanner />}
+      {apiError?.isNetworkError && <BackendUnavailableBanner />}
 
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
@@ -114,24 +125,6 @@ export default function SubmitPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="course">
-                  Course <span className="text-destructive">*</span>
-                </Label>
-                <Select value={course} onValueChange={setCourse}>
-                  <SelectTrigger id="course">
-                    <SelectValue placeholder="Select a course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COURSES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">

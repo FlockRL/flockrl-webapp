@@ -43,7 +43,6 @@ export function FeaturedCarousel({ submissions }: FeaturedCarouselProps) {
             <div className="max-w-2xl">
               <div className="mb-3 flex items-center gap-3">
                 <StatusBadge status={current.status} />
-                <span className="text-sm text-white/80">{current.course}</span>
               </div>
               <h2 className="mb-2 text-2xl font-bold text-white md:text-4xl">{current.title}</h2>
               {current.metrics?.score && (

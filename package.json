@@ -1,0 +1,10 @@
+{
+  "name": "flockrl-webapp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uvicorn main:app --reload --port 8000",
+    "start": "cd frontend && npm run start"
+  }
+}

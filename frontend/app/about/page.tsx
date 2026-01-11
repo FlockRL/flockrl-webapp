@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Upload, Cog, Play, BarChart3, Trophy, FolderOpen, ArrowRight } from "lucide-react"
+import { Upload, Cog, Play, BarChart3, ArrowRight } from "lucide-react"
 
 const steps = [
   {
@@ -31,16 +31,6 @@ const features = [
     title: "Detailed Analytics",
     description: "View comprehensive metrics including score, time, collisions, smoothness, and path efficiency.",
   },
-  {
-    icon: Trophy,
-    title: "Leaderboard Rankings",
-    description: "Compete with the community and see how your flights stack up on the leaderboard.",
-  },
-  {
-    icon: FolderOpen,
-    title: "Collections",
-    description: "Organize your favorite submissions into curated collections for easy access.",
-  },
 ]
 
 export default function AboutPage() {
@@ -53,7 +43,7 @@ export default function AboutPage() {
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-4xl">Welcome to FlockRL Gallery</h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            A visual gallery showcasing drone flight videos navigating obstacle courses. Upload your flight logs and
+            A visual gallery showcasing drone flight videos. Upload your flight logs and
             watch them transform into rendered visualizations with detailed analytics.
           </p>
         </div>

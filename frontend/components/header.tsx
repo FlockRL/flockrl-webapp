@@ -6,14 +6,12 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Search, Upload, Menu, LayoutGrid, Trophy, FolderOpen, Info } from "lucide-react"
+import { Search, Upload, Menu, LayoutGrid, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/", label: "Gallery", icon: LayoutGrid },
   { href: "/submit", label: "Submit", icon: Upload },
-  { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-  { href: "/collections", label: "Collections", icon: FolderOpen },
   { href: "/about", label: "About", icon: Info },
 ]
 

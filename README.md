@@ -92,6 +92,21 @@ SIMULATOR_PATH=/Users/joshz/repos/flockrl/simulator
 6. Click on a submission to see details
 7. Use the Renderer tab to start interactive visualization
 
+## Deployment
+
+### Quick Deploy Summary
+
+**Frontend (Cloudflare Pages):**
+- Root directory: `frontend`
+- Build command: `npm run build && npm run pages:build`
+- Build output: `dist`
+
+**Backend:**
+- Multiple options: Cloudflare Workers, AWS Lambda, VPS, Docker
+- See detailed instructions in `DEPLOYMENT.md`
+
+For complete deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## PlotlyRenderer Integration
 
 The backend integrates with the FlockRL Simulator's `PlotlyRenderer` for interactive 3D visualization:

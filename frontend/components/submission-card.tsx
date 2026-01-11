@@ -42,8 +42,7 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
           <h3 className="mb-2 line-clamp-1 font-semibold text-foreground group-hover:text-primary">
             {submission.title}
           </h3>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{submission.course}</span>
+          <div className="flex items-center justify-end text-sm text-muted-foreground">
             {submission.metrics?.score && (
               <div className="flex items-center gap-1 text-primary">
                 <Trophy className="h-4 w-4" />
