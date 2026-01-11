@@ -1,0 +1,15 @@
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+python-multipart==0.0.12
+pydantic==2.9.2
+python-dotenv==1.0.1
+
+# FlockRL Simulator (from local repository)
+# Install as editable so changes reflect immediately
+# Use absolute path or relative path (../simulator if simulator is sibling to webapp)
+-e /Users/joshz/repos/flockrl/simulator
+# Alternative: -e ../simulator  # if simulator repo is at ../simulator relative to backend/
+
+# Visualization dependencies (required by PlotlyRenderer)
+dash>=2.14
+plotly>=5.18
