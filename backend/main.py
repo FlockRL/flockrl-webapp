@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import json
+import os
 from datetime import datetime
 from flockrl_sim.visualization.plotly_renderer import PlotlyRenderer
 from flockrl_sim.visualization.renderer import OfflineVisualizer
@@ -20,9 +21,15 @@ load_dotenv()
 app = FastAPI(title="FlockRL API", version="1.0.0")
 
 # CORS middleware to allow frontend to communicate with backend
+# Allow origins from environment variable or default to localhost for development
+allowed_origins = os.getenv(
+    "CORS_ORIGINS", 
+    "http://localhost:3000"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js dev server
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
