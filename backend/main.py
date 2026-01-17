@@ -7,14 +7,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
+from fastapi.responses import PlainTextResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import json
 import os
 from datetime import datetime
-from flockrl_sim.visualization.plotly_renderer import PlotlyRenderer
-from flockrl_sim.visualization.renderer import OfflineVisualizer
 
 load_dotenv()
 
@@ -305,71 +303,6 @@ async def get_submission_status(submission_id: str):
             "status": "ERROR",
             "message": str(e)
         }
-
-
-# Store active renderer processes
-_active_renderers: dict = {}
-
-
-@app.post("/api/submissions/{submission_id}/render")
-async def render_submission(submission_id: str, host: str = "127.0.0.1", port: int = 8050):
-    """
-    Start a PlotlyRenderer server for the submission.
-    Starts Dash server in a background thread and returns the URL.
-    """
-    import threading
-    
-    upload_dir = Path("uploads")
-    
-    # Find the file
-    json_file = upload_dir / f"{submission_id}.json"
-    log_file = upload_dir / f"{submission_id}.log"
-    
-    file_path = json_file if json_file.exists() else (log_file if log_file.exists() else None)
-    
-    if not file_path or not file_path.exists():
-        raise HTTPException(status_code=404, detail="Submission not found")
-    
-    try:
-        # Check if renderer is already running for this submission
-        if submission_id in _active_renderers and _active_renderers[submission_id].is_alive():
-            return {
-                "id": submission_id,
-                "message": "Renderer already running",
-                "render_url": f"http://{host}:{port}",
-                "frame_count": 0,
-                "obstacle_count": 0,
-            }
-        
-        # Load the simulation data
-        visualizer = OfflineVisualizer(file_path, render_mode="plotly")
-        visualizer.load()
-        
-        frame_count = len(visualizer.frames)
-        obstacle_count = len(visualizer.obstacles)
-        
-        # Start renderer in background thread
-        def run_renderer():
-            try:
-                visualizer.render(host=host, port=port, debug=False)
-            except Exception as e:
-                print(f"Renderer error: {e}")
-        
-        renderer_thread = threading.Thread(target=run_renderer, daemon=True)
-        renderer_thread.start()
-        
-        # Store reference to thread
-        _active_renderers[submission_id] = renderer_thread
-        
-        return {
-            "id": submission_id,
-            "message": f"Renderer started. Access at http://{host}:{port}",
-            "render_url": f"http://{host}:{port}",
-            "frame_count": frame_count,
-            "obstacle_count": obstacle_count,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start renderer: {str(e)}")
 
 
 @app.get("/api/submissions/{submission_id}/data")
