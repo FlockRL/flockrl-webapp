@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import json
@@ -403,6 +403,36 @@ async def get_submission_data(submission_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load data: {str(e)}")
+
+
+@app.get("/api/submissions/{submission_id}/file")
+async def get_submission_file(submission_id: str):
+    """
+    Download the original simulation log file for a submission.
+    """
+    upload_dir = Path("uploads")
+
+    json_file = upload_dir / f"{submission_id}.json"
+    log_file = upload_dir / f"{submission_id}.log"
+
+    file_path = json_file if json_file.exists() else (log_file if log_file.exists() else None)
+
+    if not file_path or not file_path.exists():
+        raise HTTPException(status_code=404, detail="Log file not found")
+
+    media_type = "application/json" if file_path.suffix == ".json" else "text/plain"
+    download_name = file_path.name
+    metadata_path = upload_dir / f"{submission_id}_metadata.json"
+    if metadata_path.exists():
+        try:
+            with open(metadata_path, "r") as f:
+                metadata = json.load(f)
+            if isinstance(metadata, dict) and isinstance(metadata.get("log_file_name"), str):
+                download_name = metadata["log_file_name"]
+        except json.JSONDecodeError:
+            pass
+
+    return FileResponse(file_path, media_type=media_type, filename=download_name)
 
 
 @app.get("/api/submissions/{submission_id}/log")

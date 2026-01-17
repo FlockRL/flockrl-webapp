@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
-import { getSubmission, renderSubmission, getSubmissionLog, APIError } from "@/lib/api"
+import { getSubmission, getSubmissionFile, APIError } from "@/lib/api"
 import { BackendNotConfiguredBanner, BackendUnavailableBanner } from "@/components/backend-status-banner"
+import { PlottyViewer, type SimulationLog } from "@/components/plotty-viewer"
 import type { Submission } from "@/lib/types"
 import {
   Trophy,
@@ -27,7 +28,6 @@ import {
   Calendar,
   Loader2,
   FileText,
-  Settings,
   Tag,
 } from "lucide-react"
 
@@ -44,39 +44,12 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
   const [isNetworkError, setIsNetworkError] = useState(false)
   
   // Visualization state
-  const [isRendering, setIsRendering] = useState(false)
-  const [renderUrl, setRenderUrl] = useState<string | null>(null)
-  const [hasStartedRenderer, setHasStartedRenderer] = useState(false)
-  
+  const [logData, setLogData] = useState<SimulationLog | null>(null)
+
   // Log file state
   const [logContent, setLogContent] = useState<string | null>(null)
   const [isLoadingLog, setIsLoadingLog] = useState(false)
   const [logError, setLogError] = useState<string | null>(null)
-
-  const handleStartVisualization = async () => {
-    if (hasStartedRenderer) return
-    
-    setIsRendering(true)
-    setHasStartedRenderer(true)
-    try {
-      const response = await renderSubmission(id)
-      setRenderUrl(response.render_url)
-      toast({
-        title: "Visualization started",
-        description: "Interactive visualization is loading...",
-      })
-    } catch (err) {
-      const message = err instanceof APIError ? err.message : "Failed to start visualization"
-      toast({
-        title: "Visualization failed",
-        description: message,
-        variant: "destructive",
-      })
-      setHasStartedRenderer(false)
-    } finally {
-      setIsRendering(false)
-    }
-  }
 
   // Fetch submission from API
   useEffect(() => {
@@ -103,26 +76,31 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
     fetchSubmission()
   }, [id])
 
-  // Auto-start renderer when submission is loaded
-  useEffect(() => {
-    if (submission && submission.status === "READY" && !hasStartedRenderer && !renderUrl) {
-      handleStartVisualization()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission?.status, hasStartedRenderer, renderUrl])
-
   // Fetch log content when submission is loaded
   useEffect(() => {
     if (submission && submission.logFileName) {
       setIsLoadingLog(true)
       setLogError(null)
-      getSubmissionLog(id)
+      setLogData(null)
+      setLogContent(null)
+      getSubmissionFile(id)
         .then((content) => {
+          const parsed = JSON.parse(content) as SimulationLog
+          if (!parsed || !Array.isArray(parsed.frames)) {
+            throw new Error("Log data is missing frames")
+          }
+          setLogData(parsed)
           setLogContent(content)
         })
         .catch((err) => {
           console.error("Failed to fetch log content:", err)
-          setLogError(err instanceof APIError ? err.message : "Failed to load log file")
+          if (err instanceof APIError) {
+            setLogError(err.message)
+          } else if (err instanceof Error) {
+            setLogError(err.message)
+          } else {
+            setLogError("Failed to load log file")
+          }
         })
         .finally(() => {
           setIsLoadingLog(false)
@@ -265,52 +243,27 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
                 <CardTitle className="text-lg">Interactive Visualization</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {renderUrl ? (
-                  <div className="space-y-4">
-                    <div className="overflow-hidden rounded-lg border border-border bg-black">
-                      <iframe
-                        src={renderUrl}
-                        className="h-[800px] w-full"
-                        title="Simulation Visualization"
-                        allow="fullscreen"
-                      />
-                    </div>
+                {isLoadingLog ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+                    <p className="text-lg font-medium">Loading simulation log...</p>
+                    <p className="text-sm text-muted-foreground">Preparing interactive visualization</p>
                   </div>
+                ) : logError ? (
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <p className="mb-2 text-lg font-medium text-destructive">Visualization unavailable</p>
+                    <p className="text-sm text-muted-foreground">{logError}</p>
+                  </div>
+                ) : logData ? (
+                  <PlottyViewer logData={logData} />
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16">
-                    {isRendering ? (
-                      <>
-                        <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-                        <p className="text-lg font-medium">Starting visualization...</p>
-                        <p className="text-sm text-muted-foreground">This may take a few moments</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="mb-4 text-lg font-medium">Visualization not started</p>
-                        <Button 
-                          onClick={handleStartVisualization} 
-                          disabled={isRendering || submission.status !== "READY"}
-                          className="gap-2"
-                        >
-                          {isRendering ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Starting...
-                            </>
-                          ) : (
-                            <>
-                              <Settings className="h-4 w-4" />
-                              Start Visualization
-                            </>
-                          )}
-                        </Button>
-                        {submission.status !== "READY" && (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            Visualization is only available for submissions with READY status
-                          </p>
-                        )}
-                      </>
-                    )}
+                    <p className="mb-2 text-lg font-medium">No log data available</p>
+                    <p className="text-sm text-muted-foreground">
+                      {submission.status !== "READY"
+                        ? "Visualization is only available for submissions with READY status."
+                        : "Upload a simulation log to view the interactive visualization."}
+                    </p>
                   </div>
                 )}
               </CardContent>

@@ -194,6 +194,24 @@ export async function getSubmissionData(id: string): Promise<{
 }
 
 /**
+ * Get the raw submission log file as JSON.
+ */
+export async function getSubmissionFile(id: string): Promise<string> {
+  const response = await fetchWithErrorHandling(`${API_URL}/api/submissions/${id}/file`)
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new APIError(
+      errorData.detail || `HTTP error ${response.status}`,
+      response.status,
+      errorData.detail,
+      false,
+      false
+    )
+  }
+  return response.text()
+}
+
+/**
  * Get log file content for a submission
  */
 export async function getSubmissionLog(id: string): Promise<string> {
