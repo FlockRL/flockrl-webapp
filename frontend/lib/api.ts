@@ -36,6 +36,11 @@ export class APIError extends Error {
 }
 
 export function isBackendConfigured(): boolean {
+  // If API_URL is not set, backend is not configured
+  if (!API_URL) {
+    return false
+  }
+  
   // Check if running in production (not localhost)
   const isProduction = typeof window !== 'undefined' && !window.location.hostname.includes('localhost')
   // Check if API_URL is still pointing to localhost
@@ -44,7 +49,7 @@ export function isBackendConfigured(): boolean {
   return !(isProduction && isLocalhostAPI)
 }
 
-export function getBackendStatus(): { configured: boolean; url: string } {
+export function getBackendStatus(): { configured: boolean; url: string | undefined } {
   return {
     configured: isBackendConfigured(),
     url: API_URL
