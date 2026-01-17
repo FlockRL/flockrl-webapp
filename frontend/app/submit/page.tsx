@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { createSubmission, APIError, isBackendConfigured } from "@/lib/api"
 import { BackendNotConfiguredBanner, BackendUnavailableBanner } from "@/components/backend-status-banner"
-import { Upload, Sparkles } from "lucide-react"
+import { Upload, Sparkles, Loader2 } from "lucide-react"
 
 export default function SubmitPage() {
   const router = useRouter()
@@ -145,7 +145,11 @@ export default function SubmitPage() {
           </Card>
 
           <Button type="submit" size="lg" className="w-full gap-2 glow-sm hover:glow-md transition-all" disabled={isSubmitting}>
-            <Upload className="h-5 w-5" />
+            {isSubmitting ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
             {isSubmitting ? "Uploading..." : "Submit Log"}
           </Button>
         </form>

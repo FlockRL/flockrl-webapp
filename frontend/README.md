@@ -18,10 +18,16 @@ The frontend is currently deployed **without** a backend API. When you visit the
 #### For Local Development
 1. Create a `.env.local` file in the `frontend` directory:
    ```bash
-   NEXT_PUBLIC_API_URL=http://localhost:8000
+   NEXT_PUBLIC_API_URL=http://localhost:8787
    ```
 
-2. Start your backend server on port 8000
+2. Start your backend server (Cloudflare Workers):
+   ```bash
+   cd ../backend
+   npm install
+   npm run dev
+   ```
+   The backend runs on port 8787
 
 3. Run the frontend:
    ```bash
