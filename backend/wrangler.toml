@@ -25,4 +25,4 @@ local_protocol = "http"
 
 # Environment variables
 [vars]
-CORS_ORIGINS = "http://localhost:3000,https://your-frontend.pages.dev"
+CORS_ORIGINS = "http://localhost:3000"
