@@ -1,6 +1,6 @@
 name = "flockrl-webapp"
 compatibility_date = "2025-01-13"
-pages_build_output_dir = "dist"
+pages_build_output_dir = "out"
 
 # Compatibility flags for Node.js runtime
 compatibility_flags = ["nodejs_compat"]

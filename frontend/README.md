@@ -74,11 +74,8 @@ npm install
 # Start development server
 npm run dev
 
-# Build for production
+# Build for production (static export)
 npm run build
-
-# Build for Cloudflare Pages
-npm run pages:build
 
 # Deploy to Cloudflare Pages
 npm run deploy
@@ -102,8 +99,6 @@ frontend/
 ├── lib/
 │   ├── api.ts            # API client with error handling
 │   └── types.ts          # TypeScript types
-├── scripts/
-│   └── postbuild.sh      # Post-build cleanup script
 └── wrangler.toml         # Cloudflare Pages configuration
 ```
 
@@ -127,10 +122,7 @@ frontend/
 ## 🐛 Troubleshooting
 
 ### CSS Not Loading
-If you see unstyled content, check that `_routes.json` is in the dist directory:
-```bash
-cat dist/_routes.json
-```
+If you see unstyled content, check that static assets are being served correctly. Verify the build output in `out/` directory.
 
 ### Backend Connection Issues
 1. Check browser console for API errors
@@ -141,11 +133,11 @@ cat dist/_routes.json
 ### Build Errors
 ```bash
 # Clean build directories
-rm -rf .next dist .open-next node_modules
+rm -rf .next out node_modules
 
 # Reinstall and rebuild
 npm install
-npm run pages:build
+npm run build
 ```
 
 ## 📝 License

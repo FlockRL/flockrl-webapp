@@ -24,7 +24,7 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
 
   return (
     <Link
-      href={`/submissions/${submission.id}`}
+      href={`/submissions?id=${submission.id}`}
       className="group relative block rounded-xl glass border border-border p-4 hover:border-primary/50 transition-all duration-300 hover-lift glow-border overflow-hidden"
     >
       {/* Hover gradient overlay */}

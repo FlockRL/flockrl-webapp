@@ -20,15 +20,13 @@ import {
   Zap,
   AlertTriangle,
   Download,
-  RefreshCw,
   Calendar,
   Loader2,
   FileText,
   Tag,
 } from "lucide-react"
 
-export default function SubmissionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export function SubmissionClient({ id }: { id: string }) {
   const router = useRouter()
   const { toast } = useToast()
   

@@ -53,7 +53,7 @@ export default function SubmitPage() {
       })
 
       // Navigate to submission detail with real ID from response
-      router.push(`/submissions/${response.id}`)
+      router.push(`/submissions?id=${response.id}`)
     } catch (error) {
       if (error instanceof APIError) {
         setApiError(error)

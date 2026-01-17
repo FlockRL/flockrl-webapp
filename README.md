@@ -101,8 +101,8 @@ npm run deploy
 
 **Frontend (Cloudflare Pages):**
 - Root directory: `frontend`
-- Build command: `npm run build && npm run pages:build`
-- Build output: `dist`
+- Build command: `npm run build`
+- Build output: `out`
 - Set `NEXT_PUBLIC_API_URL` to your Workers URL
 
 For complete deployment instructions, see `backend/DEPLOYMENT.md` and `frontend/README.md`.
