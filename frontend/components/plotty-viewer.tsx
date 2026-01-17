@@ -45,12 +45,21 @@ type PlotlyHTMLElement = HTMLDivElement & {
   on?: (eventName: string, handler: (event: PlotlyRelayoutEvent) => void) => void
   removeListener?: (eventName: string, handler: (event: PlotlyRelayoutEvent) => void) => void
 }
+type SphereOptions = {
+  color: string
+  opacity?: number
+  name?: string
+  showlegend?: boolean
+  hoverinfo?: string
+  text?: string
+}
 
 const DEFAULT_PLAYBACK_SPEED = 50
 const MIN_PLAYBACK_SPEED = 5
 const MAX_PLAYBACK_SPEED = 200
 const PLAYBACK_STEP = 5
 const TRAIL_WINDOW = 100
+const DEFAULT_DRONE_RADIUS = 0.2
 
 type AxisBounds = [number, number]
 type SceneBounds = { x: AxisBounds; y: AxisBounds; z: AxisBounds }
@@ -70,7 +79,13 @@ function extractObstacles(metadata?: Record<string, unknown> | null): Obstacle[]
   return []
 }
 
-function createGoalMesh(cx: number, cy: number, cz: number, radius: number, name: string): PlotlyTrace {
+function createSphereMesh(
+  cx: number,
+  cy: number,
+  cz: number,
+  radius: number,
+  options: SphereOptions
+): PlotlyTrace {
   const nTheta = 12
   const nPhi = 24
   const vertices: number[][] = []
@@ -112,13 +127,24 @@ function createGoalMesh(cx: number, cy: number, cz: number, radius: number, name
     i,
     j,
     k,
+    color: options.color,
+    opacity: options.opacity ?? 1,
+    name: options.name,
+    showlegend: options.showlegend ?? false,
+    hoverinfo: options.hoverinfo ?? "skip",
+    text: options.text,
+    flatshading: true,
+  }
+}
+
+function createGoalMesh(cx: number, cy: number, cz: number, radius: number, name: string): PlotlyTrace {
+  return createSphereMesh(cx, cy, cz, radius, {
     color: "green",
     opacity: 0.2,
     name,
     showlegend: false,
     hoverinfo: "name",
-    flatshading: true,
-  }
+  })
 }
 
 function createBoxMesh(cx: number, cy: number, cz: number, dx: number, dy: number, dz: number, name: string): PlotlyTrace[] {
@@ -210,6 +236,17 @@ function getGoalThreshold(metadata?: Record<string, unknown> | null): number {
   return typeof threshold === "number" ? threshold : 1
 }
 
+function getDroneRadius(metadata?: Record<string, unknown> | null): number {
+  const config = metadata?.config
+  if (!config || typeof config !== "object") return DEFAULT_DRONE_RADIUS
+  const simulation = (config as Record<string, unknown>).simulation
+  if (!simulation || typeof simulation !== "object") return DEFAULT_DRONE_RADIUS
+  const radius =
+    (simulation as Record<string, unknown>).drone_radius ??
+    (simulation as Record<string, unknown>).droneRadius
+  return typeof radius === "number" ? radius : DEFAULT_DRONE_RADIUS
+}
+
 function updateBounds(
   minValues: [number, number, number],
   maxValues: [number, number, number],
@@ -286,7 +323,12 @@ function extractObstacleBounds(
   return { center: position, size: [0, 0, 0] }
 }
 
-function buildSceneBounds(logData: SimulationLog, obstacles: Obstacle[], goalThreshold: number): SceneBounds {
+function buildSceneBounds(
+  logData: SimulationLog,
+  obstacles: Obstacle[],
+  goalThreshold: number,
+  droneRadius: number
+): SceneBounds {
   const minValues: [number, number, number] = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY]
   const maxValues: [number, number, number] = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY]
 
@@ -297,7 +339,8 @@ function buildSceneBounds(logData: SimulationLog, obstacles: Obstacle[], goalThr
     const positions = Array.isArray(state.pos) ? state.pos : []
     positions.forEach((pos) => {
       if (!Array.isArray(pos) || pos.length < 3) return
-      updateBounds(minValues, maxValues, pos[0], pos[1], pos[2])
+      updateBounds(minValues, maxValues, pos[0] - droneRadius, pos[1] - droneRadius, pos[2] - droneRadius)
+      updateBounds(minValues, maxValues, pos[0] + droneRadius, pos[1] + droneRadius, pos[2] + droneRadius)
     })
 
     const goals = Array.isArray(state.goals) ? state.goals : []
@@ -378,7 +421,8 @@ function buildTraces(
   data: SimulationLog,
   frameIdx: number,
   obstacles: Obstacle[],
-  goalThreshold: number
+  goalThreshold: number,
+  droneRadius: number
 ): PlotlyTrace[] {
   const traces: PlotlyTrace[] = []
 
@@ -443,16 +487,20 @@ function buildTraces(
   const positions = Array.isArray(currentState?.pos) ? currentState.pos : []
   if (positions.length > 0) {
     const ids = droneIds.length === positions.length ? droneIds : positions.map((_, idx) => idx)
-    traces.push({
-      type: "scatter3d",
-      x: positions.map((pos) => pos[0]),
-      y: positions.map((pos) => pos[1]),
-      z: positions.map((pos) => pos[2]),
-      mode: "markers",
-      marker: { size: 10, color: "orange", line: { color: "black", width: 2 } },
-      text: ids.map((id) => `Drone ${id}`),
-      hoverinfo: "text",
-      name: "Drones",
+    positions.forEach((pos, index) => {
+      if (!Array.isArray(pos) || pos.length < 3) return
+      const id = ids[index] ?? index
+      const showLegend = index === 0
+      traces.push(
+        createSphereMesh(pos[0], pos[1], pos[2], droneRadius, {
+          color: "orange",
+          opacity: 1,
+          name: showLegend ? "Drones" : undefined,
+          showlegend: showLegend,
+          hoverinfo: "text",
+          text: `Drone ${id}`,
+        })
+      )
     })
   }
 
@@ -484,7 +532,11 @@ export function PlottyViewer({
 
   const obstacles = useMemo(() => extractObstacles(logData.metadata), [logData.metadata])
   const goalThreshold = useMemo(() => getGoalThreshold(logData.metadata), [logData.metadata])
-  const sceneBounds = useMemo(() => buildSceneBounds(logData, obstacles, goalThreshold), [logData, obstacles, goalThreshold])
+  const droneRadius = useMemo(() => getDroneRadius(logData.metadata), [logData.metadata])
+  const sceneBounds = useMemo(
+    () => buildSceneBounds(logData, obstacles, goalThreshold, droneRadius),
+    [logData, obstacles, goalThreshold, droneRadius]
+  )
 
   useEffect(() => {
     let active = true
@@ -530,7 +582,7 @@ export function PlottyViewer({
   useEffect(() => {
     if (!plotly || !plotRef.current || frameCount === 0 || isInteracting) return undefined
 
-    const traces = buildTraces(logData, currentFrame, obstacles, goalThreshold)
+    const traces = buildTraces(logData, currentFrame, obstacles, goalThreshold, droneRadius)
     const axisStyle = {
       gridcolor: "#888",
       gridwidth: 1,
@@ -576,7 +628,7 @@ export function PlottyViewer({
     }
 
     return () => undefined
-  }, [plotly, logData, currentFrame, frameCount, obstacles, goalThreshold, sceneBounds, plotReady, isInteracting])
+  }, [plotly, logData, currentFrame, frameCount, obstacles, goalThreshold, droneRadius, sceneBounds, plotReady, isInteracting])
 
   useEffect(() => {
     if (!plotReady || !plotRef.current) return undefined
