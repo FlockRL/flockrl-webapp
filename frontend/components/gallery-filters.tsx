@@ -7,8 +7,6 @@ import { Search } from "lucide-react"
 interface GalleryFiltersProps {
   searchQuery: string
   onSearchChange: (value: string) => void
-  statusFilter: string
-  onStatusChange: (value: string) => void
   sortBy: string
   onSortChange: (value: string) => void
 }
@@ -16,46 +14,31 @@ interface GalleryFiltersProps {
 export function GalleryFilters({
   searchQuery,
   onSearchChange,
-  statusFilter,
-  onStatusChange,
   sortBy,
   onSortChange,
 }: GalleryFiltersProps) {
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="relative w-full sm:max-w-xs">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative w-full sm:max-w-2xl group">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input
           type="search"
           placeholder="Search submissions..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
+          className="pl-10 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
         />
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[130px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="READY">Ready</SelectItem>
-            <SelectItem value="RENDERING">Rendering</SelectItem>
-            <SelectItem value="UPLOADED">Uploaded</SelectItem>
-            <SelectItem value="FAILED">Failed</SelectItem>
-          </SelectContent>
-        </Select>
-
         <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[130px]">
+          <SelectTrigger className="w-[140px] bg-background/50 border-border/50 hover:border-primary/30 transition-colors">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest</SelectItem>
-            <SelectItem value="score">Score</SelectItem>
-            <SelectItem value="duration">Duration</SelectItem>
+          <SelectContent className="glass border-border">
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="score">Top Score</SelectItem>
+            <SelectItem value="duration">Shortest</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
@@ -33,17 +33,27 @@ interface Obstacle {
 }
 
 type PlotlyTrace = Record<string, unknown>
+type PlotlyCamera = Record<string, unknown>
+type PlotlyRelayoutEvent = Record<string, unknown>
 
 type PlotlyModule = {
   newPlot: (root: HTMLDivElement, data: PlotlyTrace[], layout: Record<string, unknown>, config: Record<string, unknown>) => Promise<void>
   react: (root: HTMLDivElement, data: PlotlyTrace[], layout: Record<string, unknown>, config: Record<string, unknown>) => Promise<void>
   purge: (root: HTMLDivElement) => void
 }
+type PlotlyHTMLElement = HTMLDivElement & {
+  on?: (eventName: string, handler: (event: PlotlyRelayoutEvent) => void) => void
+  removeListener?: (eventName: string, handler: (event: PlotlyRelayoutEvent) => void) => void
+}
 
-const DEFAULT_PLAYBACK_SPEED = 250
-const MIN_PLAYBACK_SPEED = 50
-const MAX_PLAYBACK_SPEED = 1000
-const PLAYBACK_STEP = 50
+const DEFAULT_PLAYBACK_SPEED = 50
+const MIN_PLAYBACK_SPEED = 5
+const MAX_PLAYBACK_SPEED = 200
+const PLAYBACK_STEP = 5
+const TRAIL_WINDOW = 100
+
+type AxisBounds = [number, number]
+type SceneBounds = { x: AxisBounds; y: AxisBounds; z: AxisBounds }
 
 function extractObstacles(metadata?: Record<string, unknown> | null): Obstacle[] {
   if (!metadata || typeof metadata !== "object") return []
@@ -200,6 +210,170 @@ function getGoalThreshold(metadata?: Record<string, unknown> | null): number {
   return typeof threshold === "number" ? threshold : 1
 }
 
+function updateBounds(
+  minValues: [number, number, number],
+  maxValues: [number, number, number],
+  x: number,
+  y: number,
+  z: number
+) {
+  minValues[0] = Math.min(minValues[0], x)
+  minValues[1] = Math.min(minValues[1], y)
+  minValues[2] = Math.min(minValues[2], z)
+  maxValues[0] = Math.max(maxValues[0], x)
+  maxValues[1] = Math.max(maxValues[1], y)
+  maxValues[2] = Math.max(maxValues[2], z)
+}
+
+function expandBoxBounds(
+  minValues: [number, number, number],
+  maxValues: [number, number, number],
+  center: number[],
+  size: [number, number, number]
+) {
+  if (center.length < 3) return
+  const [cx, cy, cz] = center
+  const [sx, sy, sz] = size
+  updateBounds(minValues, maxValues, cx - sx / 2, cy - sy / 2, cz - sz / 2)
+  updateBounds(minValues, maxValues, cx + sx / 2, cy + sy / 2, cz + sz / 2)
+}
+
+function extractObstacleBounds(
+  obstacle: Obstacle
+): { center: number[]; size: [number, number, number] } | null {
+  const position = Array.isArray(obstacle.position) ? obstacle.position : []
+  if (position.length < 3) return null
+
+  const obsType = typeof obstacle.type === "string" ? obstacle.type.toLowerCase() : ""
+
+  if (obsType === "wall") {
+    if (
+      typeof obstacle.length !== "number" ||
+      typeof obstacle.thickness !== "number" ||
+      typeof obstacle.height !== "number"
+    ) {
+      return null
+    }
+    return { center: position, size: [obstacle.length, obstacle.thickness, obstacle.height] }
+  }
+
+  if (obsType === "gate") {
+    if (
+      typeof obstacle.width !== "number" ||
+      typeof obstacle.thickness !== "number" ||
+      typeof obstacle.height !== "number"
+    ) {
+      return null
+    }
+    return { center: position, size: [obstacle.width, obstacle.thickness, obstacle.height] }
+  }
+
+  if (obsType === "clutter" || obsType === "rectangularprism" || obsType === "rectangular_prism") {
+    if (typeof obstacle.length !== "number" || typeof obstacle.width !== "number" || typeof obstacle.height !== "number") {
+      return null
+    }
+    return { center: position, size: [obstacle.length, obstacle.width, obstacle.height] }
+  }
+
+  if (
+    typeof obstacle.length === "number" &&
+    typeof obstacle.width === "number" &&
+    typeof obstacle.height === "number"
+  ) {
+    return { center: position, size: [obstacle.length, obstacle.width, obstacle.height] }
+  }
+
+  return { center: position, size: [0, 0, 0] }
+}
+
+function buildSceneBounds(logData: SimulationLog, obstacles: Obstacle[], goalThreshold: number): SceneBounds {
+  const minValues: [number, number, number] = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY]
+  const maxValues: [number, number, number] = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY]
+
+  logData.frames.forEach((frame) => {
+    const state = frame?.state
+    if (!state) return
+
+    const positions = Array.isArray(state.pos) ? state.pos : []
+    positions.forEach((pos) => {
+      if (!Array.isArray(pos) || pos.length < 3) return
+      updateBounds(minValues, maxValues, pos[0], pos[1], pos[2])
+    })
+
+    const goals = Array.isArray(state.goals) ? state.goals : []
+    goals.forEach((goal) => {
+      if (!Array.isArray(goal) || goal.length < 3) return
+      updateBounds(minValues, maxValues, goal[0] - goalThreshold, goal[1] - goalThreshold, goal[2] - goalThreshold)
+      updateBounds(minValues, maxValues, goal[0] + goalThreshold, goal[1] + goalThreshold, goal[2] + goalThreshold)
+    })
+  })
+
+  obstacles.forEach((obstacle) => {
+    const bounds = extractObstacleBounds(obstacle)
+    if (!bounds) return
+    expandBoxBounds(minValues, maxValues, bounds.center, bounds.size)
+  })
+
+  if (!Number.isFinite(minValues[0]) || !Number.isFinite(maxValues[0])) {
+    return { x: [-1, 1], y: [-1, 1], z: [-1, 1] }
+  }
+
+  const pad = (min: number, max: number) => {
+    const span = Math.max(max - min, 1)
+    const padding = span * 0.05
+    return [min - padding, max + padding] as AxisBounds
+  }
+
+  return {
+    x: pad(minValues[0], maxValues[0]),
+    y: pad(minValues[1], maxValues[1]),
+    z: pad(minValues[2], maxValues[2]),
+  }
+}
+
+function extractCameraUpdate(event: PlotlyRelayoutEvent): PlotlyCamera | null {
+  const fullCamera = event["scene.camera"]
+  if (fullCamera && typeof fullCamera === "object") {
+    return fullCamera as PlotlyCamera
+  }
+
+  const camera: PlotlyCamera = {}
+  const eye = event["scene.camera.eye"]
+  const center = event["scene.camera.center"]
+  const up = event["scene.camera.up"]
+  const projection = event["scene.camera.projection"]
+
+  if (eye && typeof eye === "object") camera.eye = eye
+  if (center && typeof center === "object") camera.center = center
+  if (up && typeof up === "object") camera.up = up
+  if (projection && typeof projection === "object") camera.projection = projection
+
+  const nestedKeys = Object.keys(event).filter((key) => key.startsWith("scene.camera."))
+  nestedKeys.forEach((key) => {
+    const path = key.replace("scene.camera.", "")
+    const [section, prop] = path.split(".")
+    if (!section || !prop) return
+    const sectionValue = (camera[section] as Record<string, unknown> | undefined) ?? {}
+    sectionValue[prop] = event[key]
+    camera[section] = sectionValue
+  })
+
+  return Object.keys(camera).length > 0 ? camera : null
+}
+
+function mergeCamera(prev: PlotlyCamera | null, next: PlotlyCamera): PlotlyCamera {
+  const merged: PlotlyCamera = { ...(prev ?? {}) }
+  Object.entries(next).forEach(([key, value]) => {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      const prevValue = (prev?.[key] as Record<string, unknown> | undefined) ?? {}
+      merged[key] = { ...prevValue, ...(value as Record<string, unknown>) }
+    } else {
+      merged[key] = value
+    }
+  })
+  return merged
+}
+
 function buildTraces(
   data: SimulationLog,
   frameIdx: number,
@@ -214,7 +388,8 @@ function buildTraces(
 
   if (frameIdx > 0) {
     const maxStep = Math.min(frameIdx, data.frames.length - 1)
-    for (let step = 1; step <= maxStep; step += 1) {
+    const startStep = Math.max(1, frameIdx - TRAIL_WINDOW + 1)
+    for (let step = startStep; step <= maxStep; step += 1) {
       const prevState = data.frames[step - 1]?.state
       const currState = data.frames[step]?.state
       if (!prevState || !currState) continue
@@ -298,19 +473,27 @@ export function PlottyViewer({
   const [playbackSpeed, setPlaybackSpeed] = useState(defaultPlaybackSpeed)
   const [plotly, setPlotly] = useState<PlotlyModule | null>(null)
   const [plotlyError, setPlotlyError] = useState<string | null>(null)
+  const [plotReady, setPlotReady] = useState(false)
+  const [isInteracting, setIsInteracting] = useState(false)
   const plotRef = useRef<HTMLDivElement | null>(null)
   const hasPlot = useRef(false)
+  const cameraRef = useRef<PlotlyCamera | null>(null)
+  const isInteractingRef = useRef(false)
+  const controlsRef = useRef<HTMLDivElement | null>(null)
+  const [controlsVisible, setControlsVisible] = useState(true)
 
   const obstacles = useMemo(() => extractObstacles(logData.metadata), [logData.metadata])
   const goalThreshold = useMemo(() => getGoalThreshold(logData.metadata), [logData.metadata])
+  const sceneBounds = useMemo(() => buildSceneBounds(logData, obstacles, goalThreshold), [logData, obstacles, goalThreshold])
 
   useEffect(() => {
     let active = true
 
     import("plotly.js-dist-min")
-      .then((mod) => {
+      .then((mod: unknown) => {
         if (active) {
-          setPlotly((mod as { default?: PlotlyModule }).default ?? (mod as PlotlyModule))
+          const plotlyMod = mod as { default?: PlotlyModule }
+          setPlotly(plotlyMod.default ?? (mod as PlotlyModule))
         }
       })
       .catch(() => {
@@ -328,28 +511,48 @@ export function PlottyViewer({
     setCurrentFrame(0)
     setIsPlaying(false)
     hasPlot.current = false
+    cameraRef.current = null
+    isInteractingRef.current = false
+    setIsInteracting(false)
+    setPlotReady(false)
   }, [logData])
 
   useEffect(() => {
-    if (!isPlaying || frameCount === 0) return undefined
+    if (!isPlaying || frameCount === 0 || isInteracting) return undefined
 
     const timer = setInterval(() => {
       setCurrentFrame((prev) => (prev + 1 > maxFrame ? 0 : prev + 1))
     }, playbackSpeed)
 
     return () => clearInterval(timer)
-  }, [isPlaying, playbackSpeed, frameCount, maxFrame])
+  }, [isPlaying, playbackSpeed, frameCount, maxFrame, isInteracting])
 
   useEffect(() => {
-    if (!plotly || !plotRef.current || frameCount === 0) return undefined
+    if (!plotly || !plotRef.current || frameCount === 0 || isInteracting) return undefined
 
     const traces = buildTraces(logData, currentFrame, obstacles, goalThreshold)
+    const axisStyle = {
+      gridcolor: "#888",
+      gridwidth: 1,
+      showline: true,
+      linecolor: "#444",
+      linewidth: 2,
+      zeroline: true,
+      zerolinecolor: "#222",
+      zerolinewidth: 3,
+      showspikes: true,
+      spikethickness: 1,
+      spikecolor: "#666",
+      showbackground: true,
+      backgroundcolor: "rgba(240, 240, 240, 0.9)",
+    }
     const layout = {
       scene: {
-        xaxis: { title: "X", gridcolor: "lightgray" },
-        yaxis: { title: "Y", gridcolor: "lightgray" },
-        zaxis: { title: "Z", gridcolor: "lightgray" },
+        xaxis: { title: "X", ...axisStyle, range: sceneBounds.x, autorange: false },
+        yaxis: { title: "Y", ...axisStyle, range: sceneBounds.y, autorange: false },
+        zaxis: { title: "Z", ...axisStyle, range: sceneBounds.z, autorange: false },
         aspectmode: "data",
+        camera: cameraRef.current ?? undefined,
       },
       showlegend: true,
       hovermode: "closest",
@@ -363,14 +566,54 @@ export function PlottyViewer({
     }
 
     if (!hasPlot.current) {
-      void plotly.newPlot(plotRef.current, traces, layout, config)
       hasPlot.current = true
-    } else {
-      void plotly.react(plotRef.current, traces, layout, config)
+      plotly.newPlot(plotRef.current, traces, layout, config)
+        .then(() => setPlotReady(true))
+        .catch(() => setPlotlyError("Failed to render plot"))
+    } else if (plotReady) {
+      plotly.react(plotRef.current, traces, layout, config)
+        .catch(() => setPlotlyError("Failed to update plot"))
     }
 
     return () => undefined
-  }, [plotly, logData, currentFrame, frameCount, obstacles, goalThreshold])
+  }, [plotly, logData, currentFrame, frameCount, obstacles, goalThreshold, sceneBounds, plotReady, isInteracting])
+
+  useEffect(() => {
+    if (!plotReady || !plotRef.current) return undefined
+
+    const plotElement = plotRef.current as PlotlyHTMLElement
+    const handleRelayouting = (event: PlotlyRelayoutEvent) => {
+      const update = extractCameraUpdate(event)
+      if (update) {
+        cameraRef.current = mergeCamera(cameraRef.current, update)
+      }
+
+      if (!isInteractingRef.current) {
+        isInteractingRef.current = true
+        setIsInteracting(true)
+      }
+    }
+
+    const handleRelayout = (event: PlotlyRelayoutEvent) => {
+      const update = extractCameraUpdate(event)
+      if (update) {
+        cameraRef.current = mergeCamera(cameraRef.current, update)
+      }
+
+      if (isInteractingRef.current) {
+        isInteractingRef.current = false
+        setIsInteracting(false)
+      }
+    }
+
+    plotElement.on?.("plotly_relayout", handleRelayout)
+    plotElement.on?.("plotly_relayouting", handleRelayouting)
+
+    return () => {
+      plotElement.removeListener?.("plotly_relayout", handleRelayout)
+      plotElement.removeListener?.("plotly_relayouting", handleRelayouting)
+    }
+  }, [plotReady])
 
   useEffect(() => {
     return () => {
@@ -379,6 +622,29 @@ export function PlottyViewer({
       }
     }
   }, [plotly])
+
+  useEffect(() => {
+    const controls = controlsRef.current
+    if (!controls) return undefined
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setControlsVisible(entry?.isIntersecting ?? true)
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(controls)
+    return () => observer.disconnect()
+  }, [])
+
+  const handlePlayPause = useCallback(() => {
+    setIsPlaying((prev) => !prev)
+  }, [])
+
+  const handleReset = useCallback(() => {
+    setCurrentFrame(0)
+  }, [])
 
   const currentState = logData.frames[currentFrame]?.state
   const droneCount = Array.isArray(currentState?.pos) ? currentState.pos.length : 0
@@ -393,18 +659,18 @@ export function PlottyViewer({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4">
+      <div ref={controlsRef} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Button
-              onClick={() => setIsPlaying((prev) => !prev)}
+              onClick={handlePlayPause}
               disabled={frameCount === 0}
             >
               {isPlaying ? "Pause" : "Play"}
             </Button>
             <Button
               variant="outline"
-              onClick={() => setCurrentFrame(0)}
+              onClick={handleReset}
               disabled={frameCount === 0}
             >
               Reset
@@ -445,6 +711,30 @@ export function PlottyViewer({
           </div>
         </div>
       </div>
+
+      {/* Floating controls when original is scrolled out of view */}
+      {!controlsVisible && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-md border border-border bg-background/95 backdrop-blur-sm px-4 py-2 shadow-lg">
+          <Button
+            size="sm"
+            onClick={handlePlayPause}
+            disabled={frameCount === 0}
+          >
+            {isPlaying ? "Pause" : "Play"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleReset}
+            disabled={frameCount === 0}
+          >
+            Reset
+          </Button>
+          <span className="text-xs text-muted-foreground ml-2">
+            {currentFrame} / {maxFrame}
+          </span>
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         <div ref={plotRef} className="h-[800px] w-full" />

@@ -2,21 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 import { FileUpload } from "@/components/file-upload"
-import { TagInput } from "@/components/tag-input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { createSubmission, APIError, isBackendConfigured } from "@/lib/api"
 import { BackendNotConfiguredBanner, BackendUnavailableBanner } from "@/components/backend-status-banner"
-import { Upload } from "lucide-react"
+import { Upload, Sparkles } from "lucide-react"
 
 export default function SubmitPage() {
   const router = useRouter()
@@ -24,13 +21,10 @@ export default function SubmitPage() {
 
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
-  const [tags, setTags] = useState<string[]>([])
   const [notes, setNotes] = useState("")
-  const [envSet, setEnvSet] = useState("")
-  const [rendererPreset, setRendererPreset] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [backendConfigured] = useState(isBackendConfigured())
+  const backendConfigured = useMemo(() => isBackendConfigured(), [])
   const [apiError, setApiError] = useState<APIError | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,10 +44,7 @@ export default function SubmitPage() {
     try {
       const response = await createSubmission(file, {
         title,
-        tags: tags.length > 0 ? tags : undefined,
         notes: notes || undefined,
-        env_set: envSet || undefined,
-        renderer_preset: rendererPreset || undefined,
       })
 
       toast({
@@ -86,22 +77,33 @@ export default function SubmitPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <Breadcrumbs items={[{ label: "Submit" }]} />
-
       {/* Show backend status banner if not configured or error */}
       {!backendConfigured && <BackendNotConfiguredBanner />}
       {apiError?.isNetworkError && <BackendUnavailableBanner />}
 
       <div className="mx-auto max-w-2xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Submit a Log</h1>
-          <p className="text-muted-foreground">Upload your flight log to generate a rendered video and analytics</p>
+        {/* Hero Header */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl border border-border glass p-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+          <div className="relative z-10">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              <span className="text-sm font-medium text-primary">New Submission</span>
+            </div>
+            <h1 className="text-3xl font-bold mb-2">
+              <span className="gradient-text">Submit a Log</span>
+            </h1>
+            <p className="text-muted-foreground">Upload your flight log to generate a rendered video and analytics</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <Card className="mb-6">
+          <Card className="mb-6 glass border-border hover-lift transition-all">
             <CardHeader>
-              <CardTitle>Log File</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5 text-primary" />
+                Log File
+              </CardTitle>
               <CardDescription>Upload the log file from your drone flight</CardDescription>
             </CardHeader>
             <CardContent>
@@ -109,7 +111,7 @@ export default function SubmitPage() {
             </CardContent>
           </Card>
 
-          <Card className="mb-6">
+          <Card className="mb-6 glass border-border hover-lift transition-all">
             <CardHeader>
               <CardTitle>Submission Details</CardTitle>
               <CardDescription>Provide information about your flight</CardDescription>
@@ -124,60 +126,25 @@ export default function SubmitPage() {
                   placeholder="Enter a title for your submission"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  className="bg-background/50 border-border/50 focus:border-primary/50 transition-all"
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tags</Label>
-                <TagInput tags={tags} onTagsChange={setTags} placeholder="Add tags (press Enter)" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Add any notes about this flight..."
+                  placeholder="Let your thoughts take off here... (bonus points for puns ✈️)"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={4}
+                  className="bg-background/50 border-border/50 focus:border-primary/50 transition-all"
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Advanced Options</CardTitle>
-              <CardDescription>Optional rendering configuration</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="envSet">Environment Set</Label>
-                <Input
-                  id="envSet"
-                  placeholder="e.g., production, staging"
-                  value={envSet}
-                  onChange={(e) => setEnvSet(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="rendererPreset">Renderer Preset</Label>
-                <Select value={rendererPreset} onValueChange={setRendererPreset}>
-                  <SelectTrigger id="rendererPreset">
-                    <SelectValue placeholder="Select a preset" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Default</SelectItem>
-                    <SelectItem value="high-quality">High Quality</SelectItem>
-                    <SelectItem value="fast">Fast Render</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Button type="submit" size="lg" className="w-full gap-2" disabled={isSubmitting}>
+          <Button type="submit" size="lg" className="w-full gap-2 glow-sm hover:glow-md transition-all" disabled={isSubmitting}>
             <Upload className="h-5 w-5" />
             {isSubmitting ? "Uploading..." : "Submit Log"}
           </Button>

@@ -85,7 +85,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
     >
       <input
         type="file"
-        accept=".log,.txt,.json"
+        accept=".json"
         onChange={handleFileInput}
         className="absolute inset-0 cursor-pointer opacity-0"
       />
@@ -93,7 +93,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
         <Upload className="h-7 w-7 text-muted-foreground" />
       </div>
       <p className="mb-1 text-center font-medium">Drop your log file here</p>
-      <p className="text-center text-sm text-muted-foreground">or click to browse (.log, .txt, .json)</p>
+      <p className="text-center text-sm text-muted-foreground">or click to browse (.json)</p>
     </div>
   )
 }

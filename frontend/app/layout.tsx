@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { Sidebar } from "@/components/sidebar"
 import { Header } from "@/components/header"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
@@ -45,12 +44,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <div className="flex h-screen">
-          <Sidebar />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Animated background */}
+        <div className="animated-bg">
+          <div className="particles">
+            <div className="particle" />
+            <div className="particle" />
+            <div className="particle" />
+            <div className="particle" />
+            <div className="particle" />
+            <div className="particle" />
           </div>
+        </div>
+        <div className="grid-pattern fixed inset-0 z-[-1]" />
+
+        <div className="relative flex h-screen flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
         <Toaster />
         <Analytics />

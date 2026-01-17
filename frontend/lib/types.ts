@@ -3,6 +3,7 @@ export type SubmissionStatus = "UPLOADED" | "RENDERING" | "READY" | "FAILED"
 export interface Submission {
   id: string
   title: string
+  name?: string
   createdAt: string
   envSet?: string
   status: SubmissionStatus

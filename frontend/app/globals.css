@@ -3,7 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Dark theme optimized for video gallery - using warm accents on dark background */
 :root {
   --background: oklch(0.12 0.01 260);
   --foreground: oklch(0.95 0 0);
@@ -11,20 +10,20 @@
   --card-foreground: oklch(0.95 0 0);
   --popover: oklch(0.16 0.01 260);
   --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.75 0.15 55);
-  --primary-foreground: oklch(0.12 0.01 260);
+  --primary: oklch(0.70 0.16 145);
+  --primary-foreground: oklch(0.95 0 0);
   --secondary: oklch(0.22 0.01 260);
   --secondary-foreground: oklch(0.95 0 0);
   --muted: oklch(0.22 0.01 260);
   --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.75 0.15 55);
+  --accent: oklch(0.65 0.18 200);
   --accent-foreground: oklch(0.12 0.01 260);
   --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(0.95 0 0);
   --border: oklch(0.28 0.01 260);
   --input: oklch(0.22 0.01 260);
-  --ring: oklch(0.75 0.15 55);
-  --chart-1: oklch(0.75 0.15 55);
+  --ring: oklch(0.65 0.18 200);
+  --chart-1: oklch(0.70 0.16 145);
   --chart-2: oklch(0.65 0.15 180);
   --chart-3: oklch(0.6 0.15 280);
   --chart-4: oklch(0.7 0.15 140);
@@ -32,12 +31,12 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.14 0.01 260);
   --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.75 0.15 55);
-  --sidebar-primary-foreground: oklch(0.12 0.01 260);
+  --sidebar-primary: oklch(0.70 0.16 145);
+  --sidebar-primary-foreground: oklch(0.95 0 0);
   --sidebar-accent: oklch(0.22 0.01 260);
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.28 0.01 260);
-  --sidebar-ring: oklch(0.75 0.15 55);
+  --sidebar-ring: oklch(0.70 0.13 55);
 }
 
 @theme inline {
@@ -88,4 +87,215 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Animated gradient background */
+.animated-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.animated-bg::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(
+      ellipse at 20% 20%,
+      oklch(0.25 0.12 145 / 0.3) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 80% 80%,
+      oklch(0.25 0.15 200 / 0.25) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at 50% 50%,
+      oklch(0.18 0.08 280 / 0.2) 0%,
+      transparent 60%
+    );
+  animation: gradientMove 20s ease-in-out infinite;
+}
+
+@keyframes gradientMove {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(5%, 5%) rotate(2deg);
+  }
+  50% {
+    transform: translate(-3%, 8%) rotate(-1deg);
+  }
+  75% {
+    transform: translate(-5%, -3%) rotate(1deg);
+  }
+}
+
+/* Floating particles */
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: oklch(0.70 0.16 145 / 0.5);
+  border-radius: 50%;
+  animation: float 15s infinite ease-in-out;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 18s; }
+.particle:nth-child(2) { left: 25%; animation-delay: 2s; animation-duration: 22s; }
+.particle:nth-child(3) { left: 40%; animation-delay: 4s; animation-duration: 16s; }
+.particle:nth-child(4) { left: 55%; animation-delay: 1s; animation-duration: 20s; }
+.particle:nth-child(5) { left: 70%; animation-delay: 3s; animation-duration: 19s; }
+.particle:nth-child(6) { left: 85%; animation-delay: 5s; animation-duration: 17s; }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(80vh) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(10vh) scale(1);
+  }
+  100% {
+    transform: translateY(-10vh) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Glow effects */
+.glow-sm {
+  box-shadow: 0 0 15px oklch(0.70 0.16 145 / 0.3);
+}
+
+.glow-md {
+  box-shadow: 0 0 25px oklch(0.70 0.16 145 / 0.4);
+}
+
+.glow-lg {
+  box-shadow: 0 0 40px oklch(0.70 0.16 145 / 0.5);
+}
+
+.glow-accent {
+  box-shadow: 0 0 25px oklch(0.65 0.18 200 / 0.4);
+}
+
+/* Animated border glow */
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    oklch(0.70 0.16 145) 0%,
+    oklch(0.65 0.18 200) 50%,
+    oklch(0.70 0.16 145) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+/* Text glow */
+.text-glow {
+  text-shadow: 0 0 20px oklch(0.70 0.16 145 / 0.5);
+}
+
+.text-glow-accent {
+  text-shadow: 0 0 20px oklch(0.65 0.18 200 / 0.5);
+}
+
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px oklch(0.70 0.16 145 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 35px oklch(0.70 0.16 145 / 0.5);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, oklch(0.75 0.18 145) 0%, oklch(0.70 0.20 200) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass effect */
+.glass {
+  background: oklch(0.16 0.01 260 / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Shimmer effect for loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.22 0.01 260) 0%,
+    oklch(0.28 0.02 200) 50%,
+    oklch(0.22 0.01 260) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Grid pattern overlay */
+.grid-pattern {
+  background-image:
+    linear-gradient(oklch(0.70 0.16 145 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.70 0.16 145 / 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
 }

@@ -22,15 +22,6 @@ export interface ListSubmissionsResponse {
   submissions: Submission[]
 }
 
-export interface RenderResponse {
-  id: string
-  message: string
-  frame_count: number
-  obstacle_count: number
-  render_url: string
-  note?: string
-}
-
 export class APIError extends Error {
   constructor(
     message: string,
@@ -158,25 +149,6 @@ export async function getSubmissionStatus(id: string): Promise<{
 }> {
   const response = await fetchWithErrorHandling(`${API_URL}/api/submissions/${id}/status`)
   return handleResponse(response)
-}
-
-/**
- * Start rendering/visualization for a submission
- */
-export async function renderSubmission(
-  id: string,
-  host: string = "127.0.0.1",
-  port: number = 8050
-): Promise<RenderResponse> {
-  const params = new URLSearchParams()
-  params.append("host", host)
-  params.append("port", port.toString())
-
-  const response = await fetchWithErrorHandling(
-    `${API_URL}/api/submissions/${id}/render?${params.toString()}`,
-    { method: "POST" }
-  )
-  return handleResponse<RenderResponse>(response)
 }
 
 /**

@@ -2,15 +2,12 @@
 
 import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Breadcrumbs } from "@/components/breadcrumbs"
-import { StatusBadge } from "@/components/status-badge"
 import { MetricCard } from "@/components/metric-card"
 import { ScoreChart } from "@/components/score-chart"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
 import { getSubmission, getSubmissionFile, APIError } from "@/lib/api"
 import { BackendNotConfiguredBanner, BackendUnavailableBanner } from "@/components/backend-status-banner"
@@ -22,7 +19,6 @@ import {
   Target,
   Zap,
   AlertTriangle,
-  Share2,
   Download,
   RefreshCw,
   Calendar,
@@ -85,7 +81,13 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
       setLogContent(null)
       getSubmissionFile(id)
         .then((content) => {
-          const parsed = JSON.parse(content) as SimulationLog
+          // Sanitize Python JSON values that aren't valid in JavaScript JSON
+          // Replace Infinity, -Infinity, and NaN with null for JavaScript compatibility
+          const sanitizedContent = content
+            .replace(/:\s*Infinity\b/g, ': null')
+            .replace(/:\s*-Infinity\b/g, ': null')
+            .replace(/:\s*NaN\b/g, ': null')
+          const parsed = JSON.parse(sanitizedContent) as SimulationLog
           if (!parsed || !Array.isArray(parsed.frames)) {
             throw new Error("Log data is missing frames")
           }
@@ -111,10 +113,10 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
   // Loading state
   if (isLoading) {
     return (
-      <div className="p-4 md:p-6">
-        <Skeleton className="mb-4 h-6 w-48" />
-        <Skeleton className="mb-4 h-8 w-64" />
-        <Skeleton className="h-4 w-32" />
+      <div className="flex flex-col items-center justify-center py-16 p-4 md:p-6">
+        <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+        <p className="text-lg font-medium">Loading submission...</p>
+        <p className="text-sm text-muted-foreground">Please wait while we fetch the data</p>
       </div>
     )
   }
@@ -136,12 +138,6 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
     )
   }
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-    toast({ title: "Link copied", description: "Share link copied to clipboard" })
-  }
-
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -154,13 +150,10 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="p-4 md:p-6">
-      <Breadcrumbs items={[{ label: "Gallery", href: "/" }, { label: submission.title }]} />
-
       {/* Title and Meta */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <StatusBadge status={submission.status} />
             <span className="text-sm text-muted-foreground">
               <Calendar className="mr-1 inline h-4 w-4" />
               {formatDate(submission.createdAt)}
@@ -177,17 +170,10 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
             </div>
           )}
         </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 bg-transparent" onClick={handleCopyLink}>
-            <Share2 className="h-4 w-4" />
-            Share
-          </Button>
-        </div>
       </div>
 
       {/* Metric Chips */}
-      {submission.metrics && submission.status === "READY" && (
+      {submission.metrics && (
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {submission.metrics.score !== undefined && (
             <MetricCard label="Score" value={submission.metrics.score.toLocaleString()} icon={Trophy} />
@@ -205,27 +191,6 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
             <MetricCard label="Efficiency" value={`${submission.metrics.pathEfficiency}%`} icon={Target} />
           )}
         </div>
-      )}
-
-      {/* Failed State */}
-      {submission.status === "FAILED" && (
-        <Card className="mb-6 border-destructive bg-destructive/10">
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
-              <div>
-                <p className="font-medium text-destructive">Render Failed</p>
-                <p className="text-sm text-muted-foreground">
-                  {submission.notes || "An error occurred during rendering"}
-                </p>
-              </div>
-            </div>
-            <Button variant="outline" className="gap-2 bg-transparent">
-              <RefreshCw className="h-4 w-4" />
-              Resubmit
-            </Button>
-          </CardContent>
-        </Card>
       )}
 
       {/* Tabs */}
@@ -260,9 +225,7 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
                   <div className="flex flex-col items-center justify-center py-16">
                     <p className="mb-2 text-lg font-medium">No log data available</p>
                     <p className="text-sm text-muted-foreground">
-                      {submission.status !== "READY"
-                        ? "Visualization is only available for submissions with READY status."
-                        : "Upload a simulation log to view the interactive visualization."}
+                      Upload a simulation log to view the interactive visualization.
                     </p>
                   </div>
                 )}
@@ -326,11 +289,6 @@ export default function SubmissionDetailPage({ params }: { params: Promise<{ id:
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Created At</p>
                   <p className="text-sm">{formatDate(submission.createdAt)}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Status</p>
-                  <StatusBadge status={submission.status} />
                 </div>
 
                 {submission.logFileName && (
