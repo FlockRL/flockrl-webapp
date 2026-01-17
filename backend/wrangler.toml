@@ -1,0 +1,42 @@
+# Wrangler configuration for FlockRL Backend Workers
+# Mirrors Python backend configuration with R2 and KV storage
+
+name = "flockrl-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-13"
+compatibility_flags = ["nodejs_compat"]
+
+# R2 bucket for storing submission files (.json only)
+[[r2_buckets]]
+binding = "SUBMISSIONS_BUCKET"
+bucket_name = "flockrl-submissions"
+preview_bucket_name = "flockrl-submissions-preview"
+
+# KV namespace for storing submission metadata
+[[kv_namespaces]]
+binding = "SUBMISSIONS_KV"
+id = "YOUR_KV_NAMESPACE_ID"  # Replace with actual KV namespace ID after creation
+preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID"  # Replace with preview KV namespace ID
+
+# Local development configuration
+# Enables local R2 and KV emulators for testing
+[dev]
+local_protocol = "http"
+# Local persistence: data is stored in .wrangler/state directory
+# This allows R2 uploads to persist between dev server restarts
+persist = true
+
+# Environment variables
+# Mirrors Python CORS_ORIGINS configuration (line 23-26)
+[vars]
+CORS_ORIGINS = "http://localhost:3000,https://your-frontend.pages.dev"
+
+# Note: To create the KV namespace, run:
+# wrangler kv:namespace create SUBMISSIONS_KV
+# wrangler kv:namespace create SUBMISSIONS_KV --preview
+# 
+# Then update the 'id' and 'preview_id' fields above with the returned IDs
+
+# Note: To create the R2 bucket, run:
+# wrangler r2 bucket create flockrl-submissions
+# wrangler r2 bucket create flockrl-submissions-preview

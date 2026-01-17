@@ -1,13 +1,13 @@
 # FlockRL Webapp
 
-A monorepo containing the FlockRL frontend (Next.js) and backend (Python/FastAPI) services for viewing and submitting drone flight simulation logs.
+A monorepo containing the FlockRL frontend (Next.js) and backend (Cloudflare Workers) services for viewing and submitting drone flight simulation logs.
 
 ## Project Structure
 
 ```
 flockrl-webapp/
 ├── frontend/          # Next.js React application
-├── backend/           # Python FastAPI backend with PlotlyRenderer integration
+├── backend/           # TypeScript Cloudflare Workers backend
 └── README.md         # This file
 ```
 
@@ -18,22 +18,16 @@ flockrl-webapp/
 ```bash
 cd backend
 
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
 # Install dependencies
-pip install -r requirements.txt
+npm install
 
-# Create .env file with simulator path
-echo 'SIMULATOR_PATH=/Users/joshz/repos/flockrl/simulator' > .env
-
-# Start the server
-uvicorn main:app --reload --port 8000
+# Start the development server (uses local emulators)
+npm run dev
 ```
 
-Backend runs on `http://localhost:8000`
-- API docs: `http://localhost:8000/docs`
+Backend runs on `http://localhost:8787`
+- See `backend/README.md` for detailed setup instructions
+- See `backend/TESTING.md` for testing guide
 
 ### 2. Frontend Setup
 
@@ -44,7 +38,7 @@ cd frontend
 pnpm install  # or npm install
 
 # Create environment file
-echo 'NEXT_PUBLIC_API_URL=http://localhost:8000' > .env.local
+echo 'NEXT_PUBLIC_API_URL=http://localhost:8787' > .env.local
 
 # Start the dev server
 pnpm dev  # or npm run dev
@@ -54,10 +48,10 @@ Frontend runs on `http://localhost:3000`
 
 ## Features
 
-- **Submit**: Upload JSON simulation logs from `CoreSimulator.save_run()`
+- **Submit**: Upload JSON simulation logs (only `.json` files accepted)
 - **Gallery**: Browse all uploaded submissions with filtering/search
 - **Detail View**: View submission details, metrics, and notes
-- **Visualization**: Interactive 3D visualization using PlotlyRenderer (Dash)
+- **Serverless Backend**: Runs on Cloudflare's edge network for global low latency
 
 ## API Endpoints
 
@@ -74,45 +68,50 @@ Frontend runs on `http://localhost:3000`
 
 ### Frontend (`frontend/.env.local`)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8787
 ```
 
-### Backend (`backend/.env`)
-```
-SIMULATOR_PATH=/Users/joshz/repos/flockrl/simulator
+### Backend (`backend/wrangler.toml`)
+```toml
+[vars]
+CORS_ORIGINS = "http://localhost:3000,https://your-frontend.pages.dev"
 ```
 
 ## Development Workflow
 
-1. Start the backend server (port 8000)
-2. Start the frontend dev server (port 3000)
+1. Start the backend server: `cd backend && npm run dev` (port 8787)
+2. Start the frontend dev server: `cd frontend && npm run dev` (port 3000)
 3. The frontend communicates with the backend API
-4. Upload simulation logs via the Submit page
+4. Upload simulation logs via the Submit page (only `.json` files)
 5. View submissions in the Gallery
-6. Click on a submission to see details
-7. Use the Renderer tab to start interactive visualization
+6. Click on a submission to see details and metrics
 
 ## Deployment
 
 ### Quick Deploy Summary
 
+**Backend (Cloudflare Workers):**
+```bash
+cd backend
+npm install
+npm run deploy
+```
+- See `backend/DEPLOYMENT.md` for detailed instructions
+- Requires Cloudflare account and R2/KV setup
+
 **Frontend (Cloudflare Pages):**
 - Root directory: `frontend`
 - Build command: `npm run build && npm run pages:build`
 - Build output: `dist`
+- Set `NEXT_PUBLIC_API_URL` to your Workers URL
 
-**Backend:**
-- Multiple options: Cloudflare Workers, AWS Lambda, VPS, Docker
-- See detailed instructions in `DEPLOYMENT.md`
+For complete deployment instructions, see `backend/DEPLOYMENT.md` and `frontend/README.md`.
 
-For complete deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+## Backend Architecture
 
-## PlotlyRenderer Integration
+The backend uses:
+- **Cloudflare Workers**: Serverless edge functions
+- **R2**: Object storage for submission files
+- **KV**: Key-value storage for metadata
 
-The backend integrates with the FlockRL Simulator's `PlotlyRenderer` for interactive 3D visualization:
-
-1. Simulation logs are uploaded and validated
-2. When "Start Visualization" is clicked, a Dash server starts on port 8050
-3. The visualization is embedded in an iframe on the detail page
-
-See `backend/README.md` for more details on the simulator integration.
+See `backend/README.md` for architecture details and `backend/LOGIC_EXTRACTION.md` for implementation documentation.

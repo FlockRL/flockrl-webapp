@@ -1,0 +1,23 @@
+{
+  "name": "flockrl-backend-workers",
+  "version": "1.0.0",
+  "description": "FlockRL Backend API on Cloudflare Workers",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "keywords": [
+    "cloudflare-workers",
+    "api",
+    "flockrl"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250106.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.95.0"
+  }
+}
