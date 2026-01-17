@@ -15,28 +15,14 @@ preview_bucket_name = "flockrl-submissions-preview"
 # KV namespace for storing submission metadata
 [[kv_namespaces]]
 binding = "SUBMISSIONS_KV"
-id = "YOUR_KV_NAMESPACE_ID"  # Replace with actual KV namespace ID after creation
-preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID"  # Replace with preview KV namespace ID
+id = "a9e239c970e94d7e9f394ff6f6550389"
+preview_id = "592dca3e835f476294df33c64d54891d"
 
 # Local development configuration
 # Enables local R2 and KV emulators for testing
 [dev]
 local_protocol = "http"
-# Local persistence: data is stored in .wrangler/state directory
-# This allows R2 uploads to persist between dev server restarts
-persist = true
 
 # Environment variables
-# Mirrors Python CORS_ORIGINS configuration (line 23-26)
 [vars]
 CORS_ORIGINS = "http://localhost:3000,https://your-frontend.pages.dev"
-
-# Note: To create the KV namespace, run:
-# wrangler kv:namespace create SUBMISSIONS_KV
-# wrangler kv:namespace create SUBMISSIONS_KV --preview
-# 
-# Then update the 'id' and 'preview_id' fields above with the returned IDs
-
-# Note: To create the R2 bucket, run:
-# wrangler r2 bucket create flockrl-submissions
-# wrangler r2 bucket create flockrl-submissions-preview
