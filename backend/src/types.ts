@@ -114,21 +114,57 @@ export interface SubmissionDataResponse {
   first_frame: any;
 }
 
-// Simulation data structure
-export interface SimulationData {
-  frames: any[];
-  metadata?: {
-    score?: number;
-    success?: boolean;
-    time_sec?: number;
-    timeSec?: number;
-    collisions?: number;
-    smoothness?: number;
-    path_efficiency?: number;
-    pathEfficiency?: number;
-    obstacles?: any[];
+// Obstacle types
+export interface Obstacle {
+  type: 'wall' | 'gate' | 'clutter' | string;
+  id: string;
+  position: [number, number, number];
+  // Wall properties
+  length?: number;
+  thickness?: number;
+  height?: number;
+  // Gate properties
+  width?: number;
+  // Clutter properties
+  // Additional properties
+  [key: string]: any;
+}
+
+// Frame state structure
+export interface FrameState {
+  t: number;
+  pos: [number, number, number][];
+  ids: number[];
+  goals: [number, number, number][];
+}
+
+// Frame structure
+export interface Frame {
+  state: FrameState;
+  [key: string]: any;
+}
+
+// Simulation metadata structure
+export interface SimulationMetadata {
+  config?: {
+    simulation?: {
+      goal_threshold?: number;
+      [key: string]: any;
+    };
     [key: string]: any;
   };
+  environment?: {
+    obstacles?: Obstacle[];
+    bounds?: [number, number, number, number, number, number];
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+// Simulation data structure
+export interface SimulationData {
+  frames: Frame[];
+  metadata?: SimulationMetadata;
   [key: string]: any;
 }
 

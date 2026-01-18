@@ -247,6 +247,16 @@ function getDroneRadius(metadata?: Record<string, unknown> | null): number {
   return typeof radius === "number" ? radius : DEFAULT_DRONE_RADIUS
 }
 
+function getDeltaT(metadata?: Record<string, unknown> | null): number | null {
+  const config = metadata?.config
+  if (!config || typeof config !== "object") return null
+  const simulation = (config as Record<string, unknown>).simulation
+  if (!simulation || typeof simulation !== "object") return null
+  const deltaT = (simulation as Record<string, unknown>).delta_t
+  // Convert from seconds to milliseconds if delta_t exists
+  return typeof deltaT === "number" && deltaT > 0 ? deltaT * 1000 : null
+}
+
 function updateBounds(
   minValues: [number, number, number],
   maxValues: [number, number, number],
@@ -551,9 +561,17 @@ export function PlottyViewer({
 }) {
   const frameCount = Array.isArray(logData.frames) ? logData.frames.length : 0
   const maxFrame = Math.max(frameCount - 1, 0)
+  
+  // Get delta_t from metadata if available, otherwise use provided default
+  const deltaT = useMemo(() => getDeltaT(logData.metadata), [logData.metadata])
+  // Clamp delta_t to valid playback speed range
+  const initialPlaybackSpeed = deltaT 
+    ? Math.max(MIN_PLAYBACK_SPEED, Math.min(MAX_PLAYBACK_SPEED, deltaT))
+    : defaultPlaybackSpeed
+  
   const [currentFrame, setCurrentFrame] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [playbackSpeed, setPlaybackSpeed] = useState(defaultPlaybackSpeed)
+  const [playbackSpeed, setPlaybackSpeed] = useState(initialPlaybackSpeed)
   const [plotly, setPlotly] = useState<PlotlyModule | null>(null)
   const [plotlyError, setPlotlyError] = useState<string | null>(null)
   const [plotReady, setPlotReady] = useState(false)

@@ -30,11 +30,13 @@ export async function handleGetSubmissionData(
     // Mirrors Python lines 326-336
     const data = JSON.parse(content) as SimulationData;
     
+    const obstacles = data.metadata?.environment?.obstacles || [];
+    
     const response: SubmissionDataResponse = {
       id: submissionId,
       frame_count: data.frames?.length || 0,
       metadata: data.metadata || {},
-      obstacles: data.metadata?.obstacles || [],
+      obstacles: obstacles,
       first_frame: data.frames?.[0] || null,
     };
     
