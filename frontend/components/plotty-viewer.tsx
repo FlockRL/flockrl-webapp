@@ -56,7 +56,7 @@ type SphereOptions = {
 
 const DEFAULT_PLAYBACK_SPEED = 50
 const MIN_PLAYBACK_SPEED = 5
-const MAX_PLAYBACK_SPEED = 200
+const MAX_PLAYBACK_SPEED = 100
 const PLAYBACK_STEP = 5
 const TRAIL_WINDOW = 100
 const DEFAULT_DRONE_RADIUS = 0.2
@@ -329,6 +329,41 @@ function buildSceneBounds(
   goalThreshold: number,
   droneRadius: number
 ): SceneBounds {
+  // First, try to use bounds from metadata.environment.bounds
+  if (logData.metadata && typeof logData.metadata === "object") {
+    const metadata = logData.metadata as Record<string, unknown>
+    const environment = metadata.environment
+    if (environment && typeof environment === "object") {
+      const env = environment as Record<string, unknown>
+      const bounds = env.bounds
+      
+      if (
+        Array.isArray(bounds) &&
+        bounds.length >= 6 &&
+        typeof bounds[0] === "number" &&
+        typeof bounds[1] === "number" &&
+        typeof bounds[2] === "number" &&
+        typeof bounds[3] === "number" &&
+        typeof bounds[4] === "number" &&
+        typeof bounds[5] === "number"
+      ) {
+        const x_min = bounds[0]
+        const x_max = bounds[1]
+        const y_min = bounds[2]
+        const y_max = bounds[3]
+        const z_min = bounds[4]
+        const z_max = bounds[5]
+
+        return {
+          x: [x_min, x_max] as AxisBounds,
+          y: [y_min, y_max] as AxisBounds,
+          z: [z_min, z_max] as AxisBounds,
+        }
+      }
+    }
+  }
+
+  // Fallback to calculating bounds from frames, positions, goals, and obstacles
   const minValues: [number, number, number] = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY]
   const maxValues: [number, number, number] = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY]
 
@@ -538,6 +573,18 @@ export function PlottyViewer({
     [logData, obstacles, goalThreshold, droneRadius]
   )
 
+  const aspectRatio = useMemo(() => {
+    const xSpan = sceneBounds.x[1] - sceneBounds.x[0]
+    const ySpan = sceneBounds.y[1] - sceneBounds.y[0]
+    const zSpan = sceneBounds.z[1] - sceneBounds.z[0]
+    const maxSpan = Math.max(xSpan, ySpan, zSpan, 1)
+    return {
+      x: xSpan / maxSpan,
+      y: ySpan / maxSpan,
+      z: zSpan / maxSpan,
+    }
+  }, [sceneBounds])
+
   useEffect(() => {
     let active = true
 
@@ -603,7 +650,8 @@ export function PlottyViewer({
         xaxis: { title: "X", ...axisStyle, range: sceneBounds.x, autorange: false },
         yaxis: { title: "Y", ...axisStyle, range: sceneBounds.y, autorange: false },
         zaxis: { title: "Z", ...axisStyle, range: sceneBounds.z, autorange: false },
-        aspectmode: "data",
+        aspectmode: "manual",
+        aspectratio: aspectRatio,
         camera: cameraRef.current ?? undefined,
       },
       showlegend: true,
@@ -628,7 +676,7 @@ export function PlottyViewer({
     }
 
     return () => undefined
-  }, [plotly, logData, currentFrame, frameCount, obstacles, goalThreshold, droneRadius, sceneBounds, plotReady, isInteracting])
+  }, [plotly, logData, currentFrame, frameCount, obstacles, goalThreshold, droneRadius, sceneBounds, aspectRatio, plotReady, isInteracting])
 
   useEffect(() => {
     if (!plotReady || !plotRef.current) return undefined
