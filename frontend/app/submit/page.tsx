@@ -21,6 +21,7 @@ export default function SubmitPage() {
 
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState("")
+  const [name, setName] = useState("")
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -44,6 +45,7 @@ export default function SubmitPage() {
     try {
       const response = await createSubmission(file, {
         title,
+        name: name || undefined,
         notes: notes || undefined,
       })
 
@@ -126,6 +128,17 @@ export default function SubmitPage() {
                   placeholder="Enter a title for your submission"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  className="bg-background/50 border-border/50 focus:border-primary/50 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="bg-background/50 border-border/50 focus:border-primary/50 transition-all"
                 />
               </div>

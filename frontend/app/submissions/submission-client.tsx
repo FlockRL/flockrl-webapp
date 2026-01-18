@@ -247,6 +247,13 @@ export function SubmissionClient({ id }: { id: string }) {
                   <p className="text-base">{submission.title}</p>
                 </div>
                 
+                {submission.name && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Name</p>
+                    <p className="text-base">{submission.name}</p>
+                  </div>
+                )}
+                
                 {submission.tags && submission.tags.length > 0 && (
                   <div>
                     <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">

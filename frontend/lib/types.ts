@@ -8,7 +8,6 @@ export interface Submission {
   envSet?: string
   status: SubmissionStatus
   videoUrl?: string
-  thumbnailUrl?: string
   durationSec?: number
   notes?: string
   tags?: string[]

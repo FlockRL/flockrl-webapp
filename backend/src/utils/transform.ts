@@ -44,11 +44,11 @@ export function buildSubmissionResponse(
   return {
     id: metadata.id,
     title: metadata.title || 'Untitled',
+    name: metadata.name || null,
     createdAt: metadata.created_at || generateTimestamp(),
     envSet: metadata.env_set,
     status: metadata.status || 'READY',
     videoUrl: null, // Not yet implemented
-    thumbnailUrl: '/drone-image.jpg', // Default thumbnail
     durationSec,
     notes: metadata.notes,
     tags: metadata.tags || [],
@@ -72,9 +72,9 @@ export function buildSubmissionSummary(
   return {
     id: metadata.id,
     title: metadata.title || 'Untitled',
+    name: metadata.name || null,
     createdAt: metadata.created_at || '',
     status: metadata.status || 'READY',
-    thumbnailUrl: '/drone-image.jpg',
     tags: metadata.tags || [],
     logFileName: metadata.log_file_name || `${metadata.id}.json`,
   };
@@ -93,6 +93,7 @@ export function buildSubmissionSummary(
  * @param notes - Notes string
  * @param envSet - Environment set
  * @param rendererPreset - Renderer preset
+ * @param name - Submitter name
  * @returns Submission metadata object
  */
 export function buildMetadata(
@@ -104,11 +105,13 @@ export function buildMetadata(
   tags: string[] = [],
   notes: string | null = null,
   envSet: string | null = null,
-  rendererPreset: string | null = null
+  rendererPreset: string | null = null,
+  name: string | null = null
 ): SubmissionMetadata {
   return {
     id,
     title: title || `Submission ${id}`,
+    name: name || null,
     tags: tags || [],
     notes,
     env_set: envSet,

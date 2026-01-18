@@ -42,6 +42,7 @@ export async function handleCreateSubmission(
     
     // Get form fields
     const title = fields.get('title') || '';
+    const name = fields.get('name') || null;
     const tags = parseTags(fields.get('tags'));
     const notes = fields.get('notes') || null;
     const envSet = fields.get('env_set') || null;
@@ -83,7 +84,8 @@ export async function handleCreateSubmission(
       tags,
       notes,
       envSet,
-      rendererPreset
+      rendererPreset,
+      name
     );
     
     await storeMetadata(env.SUBMISSIONS_KV, submissionId, metadata);

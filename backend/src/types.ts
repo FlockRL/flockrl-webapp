@@ -16,6 +16,7 @@ export interface Env {
 // Mirrors Python SubmissionCreate (lines 38-43)
 export interface SubmissionCreate {
   title: string;
+  name?: string | null;
   tags?: string[];
   notes?: string | null;
   env_set?: string | null;
@@ -35,6 +36,7 @@ export interface SubmissionResponse {
 export interface SubmissionMetadata {
   id: string;
   title: string;
+  name?: string | null;
   tags: string[];
   notes: string | null;
   env_set: string | null;
@@ -51,11 +53,11 @@ export interface SubmissionMetadata {
 export interface Submission {
   id: string;
   title: string;
+  name?: string | null;
   createdAt: string;
   envSet: string | null;
   status: string;
   videoUrl: string | null;
-  thumbnailUrl: string;
   durationSec: number | null;
   notes: string | null;
   tags: string[];
@@ -81,9 +83,9 @@ export interface SubmissionMetrics {
 export interface SubmissionSummary {
   id: string;
   title: string;
+  name?: string | null;
   createdAt: string;
   status: string;
-  thumbnailUrl: string;
   tags: string[];
   logFileName: string;
 }

@@ -4,6 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export interface CreateSubmissionData {
   title: string
+  name?: string
   tags?: string[]
   notes?: string
   env_set?: string
@@ -110,6 +111,7 @@ export async function createSubmission(
   // Append metadata as query params since backend expects them separately
   const params = new URLSearchParams()
   params.append("title", metadata.title)
+  if (metadata.name) params.append("name", metadata.name)
   if (metadata.tags && metadata.tags.length > 0) {
     metadata.tags.forEach(tag => params.append("tags", tag))
   }

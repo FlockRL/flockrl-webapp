@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -20,8 +21,8 @@ export function Header() {
     <header className="flex h-16 items-center justify-between border-b border-border glass px-4 md:px-6">
       {/* Logo */}
       <Link href="/" className="group flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary glow-sm group-hover:glow-md transition-all duration-300">
-          <span className="text-sm font-bold text-primary-foreground">F</span>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden bg-transparent">
+          <Image src="/logo.png" alt="FlockRL Logo" width={32} height={32} className="object-contain" />
         </div>
         <span className="text-lg font-semibold tracking-tight gradient-text">FlockRL Gallery</span>
       </Link>
