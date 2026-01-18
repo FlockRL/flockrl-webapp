@@ -1,6 +1,5 @@
 /**
  * Get submission status endpoint
- * Mirrors Python get_submission_status() function (lines 270-305)
  */
 
 import { Env, HTTPException, SubmissionStatusResponse, SimulationData } from '../types';
@@ -9,24 +8,18 @@ import { fileExists, getFile } from '../storage/files';
 /**
  * Handle GET /api/submissions/{id}/status
  * Get the current processing status of a submission.
- * 
- * Mirrors Python lines 270-305
  */
 export async function handleGetSubmissionStatus(
   submissionId: string,
   env: Env
 ): Promise<Response> {
   try {
-    // Check if file exists (CORRECTED: only .json)
-    // Mirrors Python lines 278-284
     const exists = await fileExists(env.SUBMISSIONS_BUCKET, submissionId);
     
     if (!exists) {
       throw new HTTPException(404, 'Submission not found');
     }
     
-    // Try to load and validate the file
-    // Mirrors Python lines 287-305
     try {
       const content = await getFile(env.SUBMISSIONS_BUCKET, submissionId);
       

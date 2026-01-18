@@ -1,6 +1,5 @@
 /**
  * Get submission endpoint
- * Mirrors Python get_submission() function (lines 149-225)
  */
 
 import { Env, HTTPException, Submission, SimulationData } from '../types';
@@ -12,24 +11,18 @@ import { buildSubmissionResponse } from '../utils/transform';
  * Handle GET /api/submissions/{id}
  * Get submission details by ID.
  * Returns full Submission object matching frontend types.
- * 
- * Mirrors Python lines 149-225
  */
 export async function handleGetSubmission(
   submissionId: string,
   env: Env
 ): Promise<Response> {
   try {
-    // Load metadata from KV
-    // Mirrors Python lines 158-160
     const metadata = await getMetadata(env.SUBMISSIONS_KV, submissionId);
     
     if (!metadata) {
       throw new HTTPException(404, 'Submission not found');
     }
     
-    // Load simulation file from R2 (CORRECTED: only .json)
-    // Mirrors Python lines 167-169 (with correction)
     const fileContent = await getFile(env.SUBMISSIONS_BUCKET, submissionId);
     
     let simData: SimulationData | undefined;
@@ -38,13 +31,10 @@ export async function handleGetSubmission(
       try {
         simData = JSON.parse(fileContent) as SimulationData;
       } catch {
-        // If file can't be parsed, continue without simulation data
         simData = undefined;
       }
     }
     
-    // Build full submission response
-    // Mirrors Python lines 202-220
     const submission = buildSubmissionResponse(metadata, simData);
     
     return new Response(JSON.stringify(submission), {

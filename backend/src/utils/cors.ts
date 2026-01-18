@@ -1,13 +1,11 @@
 /**
  * CORS utilities for Cloudflare Workers
- * Mirrors Python CORS middleware configuration (lines 23-34)
  */
 
 import { Env } from '../types';
 
 /**
  * Get allowed origins from environment
- * Mirrors Python lines 23-26
  * Normalizes origins by removing trailing slashes (CORS origins should not have trailing slashes)
  */
 export function getAllowedOrigins(env: Env): string[] {
@@ -28,7 +26,6 @@ export function isOriginAllowed(origin: string | null, allowedOrigins: string[])
 
 /**
  * Add CORS headers to response
- * Mirrors Python CORSMiddleware configuration (lines 28-34)
  */
 export function addCorsHeaders(
   response: Response,
@@ -44,7 +41,6 @@ export function addCorsHeaders(
     headers.set('Access-Control-Allow-Origin', '*');
   }
   
-  // Set other CORS headers (mirrors Python allow_credentials, allow_methods, allow_headers)
   headers.set('Access-Control-Allow-Credentials', 'true');
   headers.set('Access-Control-Allow-Methods', '*');
   headers.set('Access-Control-Allow-Headers', '*');

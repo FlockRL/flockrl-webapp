@@ -1,6 +1,5 @@
 /**
  * Metadata storage utilities using Cloudflare KV
- * Abstracts KV operations to mirror Python JSON file operations
  */
 
 import { SubmissionMetadata } from '../types';
@@ -8,7 +7,6 @@ import { getMetadataKey } from '../utils/submission';
 
 /**
  * Store submission metadata in KV
- * Mirrors Python lines 131-133: writing metadata JSON to disk
  * 
  * @param kv - KV namespace
  * @param submissionId - Submission ID
@@ -26,7 +24,6 @@ export async function storeMetadata(
 
 /**
  * Get submission metadata from KV
- * Mirrors Python lines 163-164: reading metadata JSON from disk
  * 
  * @param kv - KV namespace
  * @param submissionId - Submission ID
@@ -52,7 +49,6 @@ export async function getMetadata(
 
 /**
  * List all submission IDs from KV
- * Mirrors Python line 242: glob pattern for metadata files
  * 
  * @param kv - KV namespace
  * @returns Promise that resolves to array of submission IDs
@@ -84,7 +80,6 @@ export async function listSubmissionIds(kv: KVNamespace): Promise<string[]> {
 
 /**
  * Get all submission metadata entries
- * Mirrors Python lines 242-262: scanning directory for metadata files
  * 
  * @param kv - KV namespace
  * @returns Promise that resolves to array of metadata objects

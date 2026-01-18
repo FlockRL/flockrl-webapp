@@ -1,6 +1,5 @@
 /**
  * List submissions endpoint
- * Mirrors Python list_submissions() function (lines 228-267)
  */
 
 import { Env, ListSubmissionsResponse } from '../types';
@@ -11,22 +10,15 @@ import { buildSubmissionSummary } from '../utils/transform';
  * Handle GET /api/submissions
  * List all submissions.
  * Scans KV for metadata entries and returns list.
- * 
- * Mirrors Python lines 228-267
  */
 export async function handleListSubmissions(env: Env): Promise<Response> {
   try {
-    // Get all metadata from KV
-    // Mirrors Python lines 242-262
     const metadataList = await listAllMetadata(env.SUBMISSIONS_KV);
     
-    // Build submission summaries
     const submissions = metadataList.map(metadata => 
       buildSubmissionSummary(metadata)
     );
     
-    // Sort by createdAt descending (newest first)
-    // Mirrors Python lines 264-265
     submissions.sort((a, b) => {
       const dateA = a.createdAt || '';
       const dateB = b.createdAt || '';

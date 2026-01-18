@@ -1,5 +1,4 @@
 # Wrangler configuration for FlockRL Backend Workers
-# Mirrors Python backend configuration with R2 and KV storage
 
 name = "flockrl-api"
 main = "src/index.ts"

@@ -1,14 +1,11 @@
 /**
  * File storage utilities using Cloudflare R2
- * Abstracts R2 operations to mirror Python file system operations
- * CORRECTED: Only handles .json files
  */
 
 import { getFileKey } from '../utils/submission';
 
 /**
  * Store a submission file in R2
- * Mirrors Python lines 97-99: writing file to disk
  * 
  * @param bucket - R2 bucket
  * @param submissionId - Submission ID
@@ -31,7 +28,6 @@ export async function storeFile(
 
 /**
  * Get a submission file from R2
- * Mirrors Python file read operations
  * 
  * @param bucket - R2 bucket
  * @param submissionId - Submission ID
@@ -53,7 +49,6 @@ export async function getFile(
 
 /**
  * Get a submission file from R2 as an R2ObjectBody (for streaming)
- * Mirrors Python FileResponse
  * 
  * @param bucket - R2 bucket
  * @param submissionId - Submission ID
@@ -69,7 +64,6 @@ export async function getFileObject(
 
 /**
  * Check if a submission file exists in R2
- * Mirrors Python file_path.exists() checks
  * 
  * @param bucket - R2 bucket
  * @param submissionId - Submission ID

@@ -1,6 +1,5 @@
 /**
  * Create submission endpoint
- * Mirrors Python create_submission() function (lines 64-146)
  */
 
 import { Env, HTTPException, SubmissionResponse } from '../types';
@@ -14,8 +13,6 @@ import { parseMultipartFormData, parseTags } from '../utils/multipart';
 /**
  * Handle POST /api/submissions
  * Upload a log file (JSON simulation output) and create a new submission.
- * 
- * Mirrors Python lines 64-146
  */
 export async function handleCreateSubmission(
   request: Request,
@@ -31,12 +28,8 @@ export async function handleCreateSubmission(
       throw new HTTPException(400, 'No file uploaded');
     }
     
-    // Validate file type - CORRECTED: only accept .json files
-    // Mirrors Python lines 78-83 (with correction)
     validateFileType(uploadedFile.filename);
     
-    // Generate submission ID and timestamp
-    // Mirrors Python lines 86-87
     const submissionId = generateSubmissionId();
     const createdAt = generateTimestamp();
     
@@ -54,7 +47,7 @@ export async function handleCreateSubmission(
     }
     
     // Convert ArrayBuffer to string for validation
-    const decoder = new TextDecoder('utf-8', { fatal: true });
+    const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: false });
     let content: string;
     try {
       content = decoder.decode(uploadedFile.content);
@@ -65,16 +58,10 @@ export async function handleCreateSubmission(
       );
     }
     
-    // Validate that it's a valid JSON simulation log
-    // Mirrors Python lines 102-114
     const { frameCount } = validateSimulationLog(content);
     
-    // Store the file in R2
-    // Mirrors Python lines 97-99
     await storeFile(env.SUBMISSIONS_BUCKET, submissionId, uploadedFile.content);
     
-    // Build and store metadata
-    // Mirrors Python lines 117-133
     const metadata = buildMetadata(
       submissionId,
       title,
@@ -90,8 +77,6 @@ export async function handleCreateSubmission(
     
     await storeMetadata(env.SUBMISSIONS_KV, submissionId, metadata);
     
-    // Return response
-    // Mirrors Python lines 135-141
     const response: SubmissionResponse = {
       id: submissionId,
       title: metadata.title,

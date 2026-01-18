@@ -1,6 +1,5 @@
 /**
- * Data transformation utilities mirroring Python backend logic
- * Extracted from backend/main.py
+ * Data transformation utilities
  */
 
 import {
@@ -13,7 +12,6 @@ import { calculateDuration, extractMetrics, generateTimestamp } from './submissi
 
 /**
  * Build full submission response object
- * Mirrors Python lines 202-218
  * 
  * @param metadata - Submission metadata
  * @param simData - Optional simulation data for extracting metrics
@@ -30,17 +28,13 @@ export function buildSubmissionResponse(
   if (simData) {
     const frameCount = simData.frames?.length || 0;
     
-    // Calculate duration (mirrors Python line 184)
     durationSec = calculateDuration(frameCount);
 
-    // Extract metrics from simulation metadata (mirrors Python lines 186-200)
     if (simData.metadata) {
       metrics = extractMetrics(simData.metadata);
     }
   }
 
-  // Build full submission response matching frontend Submission type
-  // Mirrors Python lines 202-218
   return {
     id: metadata.id,
     title: metadata.title || 'Untitled',
@@ -48,12 +42,12 @@ export function buildSubmissionResponse(
     createdAt: metadata.created_at || generateTimestamp(),
     envSet: metadata.env_set,
     status: metadata.status || 'READY',
-    videoUrl: null, // Not yet implemented
+    videoUrl: null,
     durationSec,
     notes: metadata.notes,
     tags: metadata.tags || [],
     metrics,
-    plots: [], // Not yet implemented
+    plots: [],
     logFileName: metadata.log_file_name || `${metadata.id}.json`,
     rendererVersion: metadata.renderer_preset,
   };
@@ -61,7 +55,6 @@ export function buildSubmissionResponse(
 
 /**
  * Build submission summary for list view
- * Mirrors Python lines 250-258
  * 
  * @param metadata - Submission metadata
  * @returns Submission summary object
@@ -82,7 +75,6 @@ export function buildSubmissionSummary(
 
 /**
  * Build metadata object from submission data
- * Mirrors Python lines 117-129
  * 
  * @param id - Submission ID
  * @param title - Submission title
@@ -117,7 +109,7 @@ export function buildMetadata(
     env_set: envSet,
     renderer_preset: rendererPreset,
     created_at: createdAt,
-    status: 'READY', // Always READY after validation
+    status: 'READY',
     log_file_name: logFileName,
     file_path: `${id}.json`, // Path in R2
     frame_count: frameCount,

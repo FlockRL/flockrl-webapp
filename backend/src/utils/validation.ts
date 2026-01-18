@@ -1,15 +1,11 @@
 /**
- * Validation utilities mirroring Python backend validation logic
- * Extracted from backend/main.py lines 78-114
+ * Validation utilities
  */
 
 import { HTTPException, SimulationData } from '../types';
 
 /**
- * Validate file type - CORRECTED to only accept .json files
- * Python backend has bug (line 79) accepting both .log and .json
- * 
- * Mirrors Python lines 78-83 (with correction)
+ * Validate file type - only accepts .json files
  */
 export function validateFileType(filename: string): void {
   if (!filename.endsWith('.json')) {
@@ -22,7 +18,6 @@ export function validateFileType(filename: string): void {
 
 /**
  * Validate simulation log JSON structure
- * Mirrors Python lines 102-114
  * 
  * @param content - Raw file content as string
  * @returns Parsed simulation data and frame count
@@ -55,29 +50,23 @@ export function validateSimulationLog(content: string): {
     // Replace NaN when it appears as a value
     .replace(/([:,\[])\s*NaN\b/g, '$1 null');
 
-  // Parse JSON (mirrors Python json.load)
   try {
     data = JSON.parse(sanitizedContent);
   } catch (error) {
-    // Provide more detailed error message
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const contentPreview = content.substring(0, 200);
     const contentLength = content.length;
     
-    // Mirrors Python JSONDecodeError handling (lines 108-112)
     throw new HTTPException(
       400,
       `File is not valid JSON. Expected output from CoreSimulator.save_run(). Error: ${errorMessage}. Content length: ${contentLength} bytes. Preview: ${contentPreview}...`
     );
   }
 
-  // Check for required "frames" field (mirrors Python lines 105-106)
   if (!('frames' in data)) {
-    // Mirrors Python ValueError handling (lines 113-114)
     throw new HTTPException(400, 'Invalid simulation log: missing \'frames\' field');
   }
 
-  // Count frames (mirrors Python line 107)
   const frameCount = Array.isArray(data.frames) ? data.frames.length : 0;
 
   return { data, frameCount };

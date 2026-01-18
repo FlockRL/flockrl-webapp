@@ -79,8 +79,6 @@ export function SubmissionClient({ id }: { id: string }) {
       setLogContent(null)
       getSubmissionFile(id)
         .then((content) => {
-          // Sanitize Python JSON values that aren't valid in JavaScript JSON
-          // Replace Infinity, -Infinity, and NaN with null for JavaScript compatibility
           const sanitizedContent = content
             .replace(/:\s*Infinity\b/g, ': null')
             .replace(/:\s*-Infinity\b/g, ': null')

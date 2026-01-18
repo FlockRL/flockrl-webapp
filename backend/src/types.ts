@@ -1,6 +1,5 @@
 /**
- * TypeScript type definitions mirroring Python backend models
- * Extracted from backend/main.py
+ * TypeScript type definitions
  */
 
 // Environment bindings for Cloudflare Workers
@@ -13,7 +12,6 @@ export interface Env {
   CORS_ORIGINS?: string;
 }
 
-// Mirrors Python SubmissionCreate (lines 38-43)
 export interface SubmissionCreate {
   title: string;
   name?: string | null;
@@ -23,7 +21,6 @@ export interface SubmissionCreate {
   renderer_preset?: string | null;
 }
 
-// Mirrors Python SubmissionResponse (lines 46-51)
 export interface SubmissionResponse {
   id: string;
   title: string;
@@ -32,7 +29,6 @@ export interface SubmissionResponse {
   message: string;
 }
 
-// Mirrors Python metadata structure (lines 117-129)
 export interface SubmissionMetadata {
   id: string;
   title: string;
@@ -48,8 +44,6 @@ export interface SubmissionMetadata {
   frame_count: number;
 }
 
-// Full submission object (frontend Submission type)
-// Mirrors Python lines 202-218
 export interface Submission {
   id: string;
   title: string;
@@ -67,8 +61,6 @@ export interface Submission {
   rendererVersion: string | null;
 }
 
-// Submission metrics extracted from simulation metadata
-// Mirrors Python lines 189-196
 export interface SubmissionMetrics {
   score?: number;
   success?: boolean;
@@ -78,8 +70,6 @@ export interface SubmissionMetrics {
   pathEfficiency?: number;
 }
 
-// Submission summary for list view
-// Mirrors Python lines 250-258
 export interface SubmissionSummary {
   id: string;
   title: string;

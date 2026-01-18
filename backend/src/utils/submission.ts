@@ -1,13 +1,11 @@
 /**
- * Submission utility functions mirroring Python backend logic
- * Extracted from backend/main.py
+ * Submission utility functions
  */
 
 import { SubmissionMetrics, SimulationData } from '../types';
 
 /**
  * Generate submission ID with timestamp
- * Mirrors Python line 86: submission_id = f"sub-{datetime.now().strftime('%Y%m%d%H%M%S')}"
  * 
  * @returns Submission ID in format "sub-YYYYMMDDHHmmss"
  */
@@ -23,7 +21,6 @@ export function generateSubmissionId(): string {
 
 /**
  * Generate ISO timestamp
- * Mirrors Python line 87: created_at = datetime.now().isoformat()
  * 
  * @returns ISO 8601 timestamp
  */
@@ -32,8 +29,7 @@ export function generateTimestamp(): string {
 }
 
 /**
- * Get file key for R2 storage - CORRECTED to only return .json
- * Python backend checks both .json and .log (lines 167-169, 278-281, etc.)
+ * Get file key for R2 storage
  * 
  * @param submissionId - Submission ID
  * @returns File key for R2 (always .json)
@@ -54,7 +50,6 @@ export function getMetadataKey(submissionId: string): string {
 
 /**
  * Calculate duration from frame count
- * Mirrors Python line 184: duration_sec = frame_count * 0.1 if frame_count > 0 else None
  * 
  * @param frameCount - Number of frames
  * @returns Duration in seconds or null
@@ -65,7 +60,6 @@ export function calculateDuration(frameCount: number): number | null {
 
 /**
  * Extract metrics from simulation metadata
- * Mirrors Python lines 186-200
  * 
  * @param simMetadata - Simulation metadata object
  * @returns Extracted metrics or null
@@ -75,8 +69,6 @@ export function extractMetrics(simMetadata: any): SubmissionMetrics | null {
     return null;
   }
 
-  // Map fields (handle both snake_case and camelCase)
-  // Mirrors Python lines 189-196
   const metrics: SubmissionMetrics = {
     score: simMetadata.score,
     success: simMetadata.success,
@@ -88,12 +80,10 @@ export function extractMetrics(simMetadata: any): SubmissionMetrics | null {
     pathEfficiency: simMetadata.path_efficiency ?? simMetadata.pathEfficiency,
   };
 
-  // Filter out undefined values (mirrors Python lines 197-198)
   const filteredMetrics = Object.fromEntries(
     Object.entries(metrics).filter(([_, v]) => v !== undefined)
   ) as SubmissionMetrics;
 
-  // Return null if all values are undefined (mirrors Python lines 199-200)
   return Object.keys(filteredMetrics).length > 0 ? filteredMetrics : null;
 }
 
