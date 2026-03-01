@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { MetricCard } from "@/components/metric-card"
 import { ScoreChart } from "@/components/score-chart"
@@ -128,7 +128,7 @@ export function SubmissionClient({ id }: { id: string }) {
           <p className="mb-4 text-muted-foreground">
             {!isNotConfigured && !isNetworkError && (error || "The submission you are looking for does not exist.")}
           </p>
-          <Button onClick={() => router.push("/")}>Back to Gallery</Button>
+          <Button onClick={() => router.push("/gallery")}>Back to Gallery</Button>
         </div>
       </div>
     )

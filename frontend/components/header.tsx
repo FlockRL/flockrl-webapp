@@ -5,11 +5,12 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Upload, Menu, LayoutGrid, Info } from "lucide-react"
+import { Upload, Menu, LayoutGrid, Info, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { href: "/", label: "Gallery", icon: LayoutGrid },
+  { href: "/", label: "Home", icon: Home },
+  { href: "/gallery", label: "Gallery", icon: LayoutGrid },
   { href: "/submit", label: "Submit", icon: Upload },
   { href: "/about", label: "About", icon: Info },
 ]
@@ -31,7 +32,10 @@ export function Header() {
       <nav className="hidden md:flex items-center gap-1">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+          const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname === item.href || (pathname.startsWith(item.href))
           return (
             <Link
               key={item.href}
@@ -71,7 +75,10 @@ export function Header() {
             <nav className="flex flex-col gap-1 p-4">
               {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname === item.href || (pathname.startsWith(item.href))
                 return (
                   <Link
                     key={item.href}
