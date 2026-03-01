@@ -6,9 +6,18 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, Sparkles, Target, Rocket, Play, Users } from "lucide-react"
-
 export default function HomePage() {
   const [imageError, setImageError] = useState(false)
+
+  const team = [
+    { name: "Aadesh", title: "ML Engineer · Hardware", image: "/aadesh.jpeg", linkedin: "https://www.linkedin.com/in/aakum/" },
+    { name: "Lucas", title: "ML Engineer", image: "/lucas.jpeg", linkedin: "https://www.linkedin.com/in/lucas--jin" },
+    { name: "Lovera", title: "ML Engineer", image: "/lovera.jpeg", linkedin: "https://www.linkedin.com/in/lovera-lokeswara/" },
+    { name: "Raiya", title: "ML Engineer · Hardware", image: "/raiya.jpeg", linkedin: "https://www.linkedin.com/in/raiya-minhas/" },
+    { name: "Cindy", title: "Software Engineer", image: "/cindy.jpeg", linkedin: "https://www.linkedin.com/in/cindehaa/" },
+    { name: "Katie", title: "TPM", image: "/katherine.jpeg", linkedin: "https://www.linkedin.com/in/katie-zhong/" },
+    { name: "Joshua", title: "TPM", image: "/joshua.jpeg", linkedin: "https://www.linkedin.com/in/joshualeezhang/" },
+  ]
 
   return (
     <div className="flex flex-col">
@@ -142,19 +151,48 @@ export default function HomePage() {
       </section>
 
       {/* Meet the team */}
-      <section className="min-h-[30vh] flex flex-col items-center justify-center px-4 py-16 text-center">
-        <h2 className="mb-4 text-3xl font-bold">
-          <span className="gradient-text">Meet the team</span>
-        </h2>
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Users className="h-8 w-8" />
+      <section className="min-h-[30vh] px-4 py-16">
+        <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
+          <h2 className="mb-4 text-3xl font-bold">
+            <span className="gradient-text">Meet the team</span>
+          </h2>
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Users className="h-8 w-8" />
+          </div>
+          <p className="mt-6 max-w-xl text-muted-foreground">
+            The team behind FlockRL across product, machine learning, software, and hardware.
+          </p>
+          <div className="mt-10 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {team.map((member) => (
+              <Card
+                key={member.name}
+                className="glass border-border flex flex-col items-center px-4 py-6 text-center transition-all hover:glow-border"
+              >
+                <div className="flex flex-col items-center gap-4 pb-3 px-6">
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 rounded-full border border-border object-cover"
+                  />
+                  <CardTitle className="text-lg capitalize">{member.name}</CardTitle>
+                </div>
+                <CardContent className="flex flex-1 flex-col items-center gap-3 pt-0 text-sm text-muted-foreground">
+                  <p>{member.title}</p>
+                  <Link
+                    href={member.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    View LinkedIn
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-        <p className="mt-6 max-w-md text-muted-foreground">
-          Our team building tools for the drone simulation community.
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground/80">
-          Coming soon.
-        </p>
       </section>
     </div>
   )
