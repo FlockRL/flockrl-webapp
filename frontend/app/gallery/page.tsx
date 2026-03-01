@@ -5,7 +5,7 @@ import { listSubmissions, APIError } from "@/lib/api"
 import { SubmissionCard } from "@/components/submission-card"
 import { GalleryFilters } from "@/components/gallery-filters"
 import { BackendNotConfiguredBanner, BackendUnavailableBanner } from "@/components/backend-status-banner"
-import { AlertCircle, Loader2, Sparkles, Zap, Trophy } from "lucide-react"
+import { AlertCircle, Loader2, Sparkles } from "lucide-react"
 import type { Submission } from "@/lib/types"
 
 function GalleryContent() {
@@ -76,13 +76,6 @@ function GalleryContent() {
     return result
   }, [searchQuery, sortBy, submissions])
 
-  // Calculate stats
-  const totalSubmissions = submissions.length
-  const topScore = submissions.reduce((max, s) => Math.max(max, s.metrics?.score || 0), 0)
-  const avgDuration = submissions.length > 0
-    ? Math.round(submissions.reduce((sum, s) => sum + (s.durationSec || 0), 0) / submissions.length)
-    : 0
-
   return (
     <>
       <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -98,33 +91,9 @@ function GalleryContent() {
               <span className="gradient-text">FlockRL</span>{" "}
               <span className="text-foreground">Submissions</span>
             </h1>
-            <p className="mb-8 max-w-2xl text-lg text-muted-foreground">
+            <p className="max-w-2xl text-lg text-muted-foreground">
               Explore AI-powered drone flight simulations. Watch how different models navigate complex environments.
             </p>
-
-            {/* Stats Grid */}
-            {!isLoading && !error && submissions.length > 0 && (
-              <div className="grid grid-cols-3 gap-4 max-w-lg">
-                <div className="rounded-xl border border-border/50 bg-background/50 p-4 text-center hover-lift">
-                  <div className="mb-1 text-2xl font-bold text-primary">{totalSubmissions}</div>
-                  <div className="text-xs text-muted-foreground">Total Flights</div>
-                </div>
-                <div className="rounded-xl border border-border/50 bg-background/50 p-4 text-center hover-lift">
-                  <div className="mb-1 text-2xl font-bold text-accent flex items-center justify-center gap-1">
-                    <Trophy className="h-5 w-5" />
-                    {topScore.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Top Score</div>
-                </div>
-                <div className="rounded-xl border border-border/50 bg-background/50 p-4 text-center hover-lift">
-                  <div className="mb-1 text-2xl font-bold text-foreground flex items-center justify-center gap-1">
-                    <Zap className="h-5 w-5 text-yellow-500" />
-                    {avgDuration}s
-                  </div>
-                  <div className="text-xs text-muted-foreground">Avg Duration</div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

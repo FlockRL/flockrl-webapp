@@ -49,7 +49,7 @@ export default function HomePage() {
               <Link href="#demo">Watch Demo</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-border hover:glow-sm">
-              <Link href="/detail">View Gallery</Link>
+              <Link href="/gallery">View Gallery</Link>
             </Button>
           </div>
         </div>

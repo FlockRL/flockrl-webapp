@@ -10,9 +10,9 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/detail", label: "Gallery", icon: LayoutGrid },
-  { href: "/detail/submit", label: "Submit", icon: Upload },
-  { href: "/detail/about", label: "About", icon: Info },
+  { href: "/gallery", label: "Gallery", icon: LayoutGrid },
+  { href: "/submit", label: "Submit", icon: Upload },
+  { href: "/about", label: "About", icon: Info },
 ]
 
 export function Header() {
@@ -35,7 +35,7 @@ export function Header() {
           const isActive =
                 item.href === "/"
                   ? pathname === "/"
-                  : pathname === item.href || (item.href !== "/detail" && pathname.startsWith(item.href))
+                  : pathname === item.href || (pathname.startsWith(item.href))
           return (
             <Link
               key={item.href}
@@ -78,7 +78,7 @@ export function Header() {
                 const isActive =
                   item.href === "/"
                     ? pathname === "/"
-                    : pathname === item.href || (item.href !== "/detail" && pathname.startsWith(item.href))
+                    : pathname === item.href || (pathname.startsWith(item.href))
                 return (
                   <Link
                     key={item.href}
