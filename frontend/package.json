@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "preview": "npx wrangler pages dev ./out",
-    "deploy": "npx wrangler pages deploy ./out",
+    "preview": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
     "dev": "next dev",
     "lint": "eslint ."
   },
