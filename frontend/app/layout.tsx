@@ -10,8 +10,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "FlockRL Gallery",
-  description: "Visual gallery of drone flight videos",
+  title: "FlockRL",
+  description: "Reinforcement Learning for Autonomous Drone Path Planning in Structured Environments",
   generator: "v0.app",
   icons: {
     icon: [

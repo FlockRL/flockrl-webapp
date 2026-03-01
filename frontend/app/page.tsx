@@ -5,7 +5,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, Sparkles, Target, Rocket, Play, Users } from "lucide-react"
+import { AlertCircle, Sparkles, Target, Rocket, Users, Cpu, BarChart2 } from "lucide-react"
+
 export default function HomePage() {
   const [imageError, setImageError] = useState(false)
 
@@ -19,25 +20,43 @@ export default function HomePage() {
     { name: "Joshua", title: "TPM", image: "/joshua.jpeg", linkedin: "https://www.linkedin.com/in/joshualeezhang/" },
   ]
 
+  const techStack = [
+    {
+      category: "RL Training",
+      icon: BarChart2,
+      items: ["Gymnasium — environments", "Stable-Baselines3 — RL algorithms", "TensorBoard — training monitoring", "Plotly — visualization"],
+    },
+    {
+      category: "Hardware",
+      icon: Cpu,
+      items: ["ESP32-based WiFi flight controller"],
+    },
+  ]
+
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden px-4 py-16 text-center">
-        <div className="relative z-10 flex flex-col items-center">
-          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
+      <section className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden px-4 py-16 text-center">
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
             <span className="gradient-text">FlockRL</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-lg text-muted-foreground md:text-xl">
-            Reinforcement Learning for Autonomous Drone Path Planning in Structured Environments
+          <p className="max-w-xl text-lg text-muted-foreground md:text-xl leading-relaxed">
+            Autonomous drone path planning via sim-to-real transfer of reinforcement learning policies.
           </p>
-          <Button asChild size="lg" className="mt-8 glow-sm">
-            <Link href="#demo">View demo</Link>
-          </Button>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <Button asChild size="lg" className="glow-sm">
+              <Link href="#demo">Watch Demo</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="border-border hover:glow-sm">
+              <Link href="/detail">View Gallery</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Project overview */}
-      <section className="min-h-[90vh] px-4 py-16 md:px-6">
+      <section className="px-4 py-16 md:px-6">
         <div className="mx-auto max-w-4xl">
           <h2 className="mb-10 text-center text-3xl font-bold">
             <span className="gradient-text">Project overview</span>
@@ -73,7 +92,7 @@ export default function HomePage() {
                 <CardTitle>Objective</CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground">
-                Our goal is to investigate sim-to-real transfer of learned drone trajectories under open-loop deployment.
+                Investigate sim-to-real transfer of learned drone trajectories under open-loop deployment.
               </CardContent>
             </Card>
             <Card className="glass border-border transition-all hover:glow-border">
@@ -92,33 +111,32 @@ export default function HomePage() {
       </section>
 
       {/* Tech stack */}
-      <section className="px-4 py-4 md:px-6">
+      <section className="px-4 py-16 md:px-6">
         <div className="mx-auto max-w-4xl">
           <h2 className="mb-10 text-center text-3xl font-bold">
             <span className="gradient-text">Tech stack</span>
           </h2>
-          <div className="flex justify-center">
-            <Card className="glass border-border w-full max-w-xl text-center">
-              <CardContent>
-                <div className="space-y-4 text-sm text-foreground">
-                  <div>
-                    <p className="font-semibold">RL Training</p>
-                    <ul className="mt-2 space-y-1">
-                      <li>Gymnasium (environments)</li>
-                      <li>Stable-Baselines3 (RL algorithms)</li>
-                      <li>TensorBoard (training monitoring)</li>
-                      <li>Plotly (visualization)</li>
-                    </ul>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {techStack.map(({ category, icon: Icon, items }) => (
+              <Card key={category} className="glass border-border transition-all hover:glow-border">
+                <CardHeader>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <Icon className="h-6 w-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="font-semibold">Hardware</p>
-                    <ul className="mt-2 space-y-1">
-                      <li>ESP32-based WiFi flight controller quadcopter</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <CardTitle className="text-base">{category}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1.5 text-sm text-muted-foreground">
+                    {items.map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -126,20 +144,24 @@ export default function HomePage() {
       {/* Demo */}
       <section
         id="demo"
-        className="min-h-[120vh] flex flex-col items-center justify-center px-4 py-16 text-center"
+        className="flex flex-col items-center justify-center px-4 py-16 text-center"
       >
         <div className="mx-auto w-full max-w-5xl">
           <h2 className="text-3xl font-bold md:text-4xl">
             <span className="gradient-text">Demo</span>
           </h2>
-          <div className="relative mt-12 aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted/30">
+          <p className="mt-3 text-muted-foreground">
+            Trained policy navigating a structured environment in simulation.
+          </p>
+          <div className="relative mt-10 aspect-video w-full overflow-hidden rounded-xl border border-border bg-muted/30">
             {imageError ? (
               <div className="flex aspect-video w-full items-center justify-center text-sm text-muted-foreground">
+                Demo unavailable
               </div>
             ) : (
               <Image
                 src="/demo.gif"
-                alt="FlockRL demo"
+                alt="FlockRL simulation demo"
                 fill
                 className="object-cover"
                 unoptimized
@@ -151,15 +173,15 @@ export default function HomePage() {
       </section>
 
       {/* Meet the team */}
-      <section className="min-h-[30vh] px-4 py-16">
+      <section className="px-4 py-16">
         <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
-          <h2 className="mb-4 text-3xl font-bold">
-            <span className="gradient-text">Meet the team</span>
-          </h2>
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Users className="h-8 w-8" />
           </div>
-          <p className="mt-6 max-w-xl text-muted-foreground">
+          <h2 className="mt-6 text-3xl font-bold">
+            <span className="gradient-text">Meet the team</span>
+          </h2>
+          <p className="mt-3 max-w-xl text-muted-foreground">
             The team behind FlockRL across product, machine learning, software, and hardware.
           </p>
           <div className="mt-10 grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -168,25 +190,24 @@ export default function HomePage() {
                 key={member.name}
                 className="glass border-border flex flex-col items-center px-4 py-6 text-center transition-all hover:glow-border"
               >
-                <div className="flex flex-col items-center gap-4 pb-3 px-6">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    width={80}
-                    height={80}
-                    className="h-20 w-20 rounded-full border border-border object-cover"
-                  />
-                  <CardTitle className="text-lg capitalize">{member.name}</CardTitle>
-                </div>
-                <CardContent className="flex flex-1 flex-col items-center gap-3 pt-0 text-sm text-muted-foreground">
+                <Image
+                  src={member.image}
+                  alt={member.name}
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 rounded-full border border-border object-cover"
+                />
+                <CardTitle className="mt-4 text-lg capitalize">{member.name}</CardTitle>
+                <CardContent className="flex flex-1 flex-col items-center gap-3 pt-2 text-sm text-muted-foreground">
                   <p>{member.title}</p>
                   <Link
                     href={member.linkedin}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs font-medium text-primary hover:underline"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/80 hover:border-primary/50"
                   >
-                    View LinkedIn
+                    <Image src="/linkedin.png" alt="LinkedIn" width={16} height={16} className="shrink-0" />
+                    LinkedIn
                   </Link>
                 </CardContent>
               </Card>
